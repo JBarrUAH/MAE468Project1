@@ -45,8 +45,8 @@ ToF1=ToFfun(t1); %finding time of flight in AU
 [thM]=Tanomaly(rxyzM1,vxyzM1,1);
 [rxyzJ1,vxyzJ1]=uToF(rxyzJ0,vxyzJ0,ToF1,1); %obtaining final vectors for Jupiter
 [thJ]=Tanomaly(rxyzJ1,vxyzJ1,1);
-fprintf("Earth anomaly: %5.2f Mars anomaly %5.2f",thE,thM);
-fprintf("should be 70.87 and 291.3");
+fprintf("Earth anomaly: %5.2f Mars anomaly %5.2f",thE,thM); %outputting true anomalies
+fprintf("\n should be 70.87 and 291.3\n"); %reference values provided by Xu
 
 %% Functions
 % Organized here for ease of editing
@@ -80,7 +80,7 @@ elseif zo < 0 %hyperbolic parameters
     S=@(z) (sinh(sqrt(-z))-sqrt(-z))/sqrt((-z)^3);
     C=@(z) (1-cosh(sqrt(-z)))/z;
 else
-    fprintf("The universe has encountered a fatal error. Your computer will now self-destruct");
+    fprintf("The universe has encountered a fatal error. Your spacecraft will now self-destruct");
 end
 % iterative solver
 while 1
@@ -103,11 +103,11 @@ dg=1-a/r1m+a/r1m*cos(x/sqrt(a));
 v1=df*r0+dg*v0; %final velocity vector
 end
 
-function [ToF] = TOFcalc(t1) %might just use anonymous function
-%takes datetime vector input and finds ToF in heliocentric TU
-t0=datetime(2000,1,1,11,58,0); %setting initial time to the J2000 parameter
-ToF=etime(timevec(t1),timevec(t0))/5.0226757e6; %for actual use, should remove datetime and timevec
-end
+% function [ToF] = TOFcalc(t1) %might just use anonymous function
+% %takes datetime vector input and finds ToF in heliocentric TU
+% t0=datetime(2000,1,1,11,58,0); %setting initial time to the J2000 parameter
+% ToF=etime(timevec(t1),timevec(t0))/5.0226757e6; %should remove datetime and timevec for actual use
+% end
 
 function [th] = Tanomaly(rxyz,vxyz,mu)
 % takes heliocentric-ecliptic vectors and outputs the true anomaly in deg
