@@ -35,7 +35,7 @@ ToFfun=@(tt) etime(tt,t0)/5.0226757e6; %anonymous function for finding ToF in AU
 [rxyzJ0,vxyzJ0]=OEtoXYZ(oeJ(1),oeJ(2),oeJ(3),oeJ(4),oeJ(5),oeJ(6),1);
 
 %% Task 1
-% Obtains rxyz and vxyz vectors for the planets on mar 14, 2021 at 0159 UTC
+% Obtains rxyz and vxyz vectors for the planets on Mar 14, 2021 at 0159 UTC
 % as well as the true anomalies
 t1=[2021,3,14,01,59,00]; %specified time as a vector
 ToF1=ToFfun(t1); %finding time of flight in AU
