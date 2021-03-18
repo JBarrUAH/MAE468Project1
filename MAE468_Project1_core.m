@@ -27,6 +27,9 @@ oeJ=[5.203363,0.048393,1.3053,100.55615,-85.8023,19.55053]; %Jupiter
 t0=datetime(2000,1,1,11,58,0); %setting initial time to the J2000 parameter
 ToFfun=@(tt) etime(datevec(tt),datevec(t0))/5.0226757e6; %anonymous function for finding ToF in AU, might use actual function
 
+zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(2pi)^2 
+% NOTE: Use 18 if elliptical, 0 if parabolic, -18 if hyperbolic
+
 %% Orbital Elements to Initial Vectors
 % Finds perifocal vectors from orbital elements, then converts to
 % vectors in heliocentric frame.
@@ -118,4 +121,46 @@ th=acosd(dot(ev,rxyz)/(e*rm));
 if dot(rxyz,vxyz)<0
     th=360-th;
 end
+end
+
+%% Gauss Orbit
+% inputs r0, ToF, mu, r1, zg
+function [v0,v1] = Gorb(r0,r1,ToF,mu,zg)
+r0m=norm(r0); %initial radius magnitude
+r1m=norm(r1); %final radius magnitude
+Dths=acosd(dot(r0,r1)/(r0m*r1m)); %delta theta (short path), in degrees
+
+As=sqrt(r0m*r1m)*sind(Dths)/sqrt(1-cosd(Dths)); %short path A
+% Selecting anonymous functions used during iteration based on orbit
+if zg == 0 %parabolic parameters
+    S=@(z) 1/factorial(3)-z/factorial(5)+z^2/factorial(7)-z^3/factorial(9);
+    C=@(z) 1/factorial(2)-z/factorial(4)+z^2/factorial(6)-z^3/factorial(8);
+elseif zg > 0 %elliptical parameters
+    S=@(z) (sqrt(z)-sin(sqrt(z)))/sqrt(z^3);
+    C=@(z) (1-cos(sqrt(z)))/z;
+elseif zg < 0 %hyperbolic parameters
+    S=@(z) (sinh(sqrt(-z))-sqrt(-z))/sqrt((-z)^3);
+    C=@(z) (1-cosh(sqrt(-z)))/z;
+else
+    fprintf("Invalid z guess");
+end
+%iterating to find parameters
+while 1
+    yo=r0m+r1m-As*(1-zg*S(zg))/sqrt(C(zg));
+    xo=sqrt(yo/C(zg));
+    ts=(xo^3*S(zg)+As*sqrt(yo))/sqrt(mu);
+    if abs((ToF-ts)/ToF) < 1e-5 %convergence when relative error is small enough
+        xs=xo;%outputting short path parameters for processing
+        zs=zg;
+        break
+    end
+    zg=zg+(ToF-ts)/((xo^3*((C(zg)-3*S(zg))/(2*zg)-(3*S(zg)*((1-zg*S(zg)-2*C(zg))/(2*zg)))/(2*C(zg)))+As/8*(3*S(zg)*sqrt(yo)/C(zg)+As/xo))/sqrt(mu));
+end
+%processing results
+fs=1-xs^2/r0m*C(zs);
+gs=ts-xs^3/sqrt(mu)*S(zs);
+dfs=(-sqrt(mu)*xs/(r0m*r1m))*(1-zs*S(zs));
+dgs=1-xs^2/r1m*C(zs);
+v0s=(r1-fs*r0)/gs; %outputting short path initial and final velocity vectors
+v1s=(dgs*r1-r0)/gs;
 end
