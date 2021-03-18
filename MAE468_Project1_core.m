@@ -24,8 +24,8 @@ oeE=[1.000000,0.01671,0.00005,-11.26064,114.20783,-2.48284]; %Earth
 oeM=[1.523662,0.093412,1.85061,49.57854,286.4623,19.41248]; %Mars
 oeJ=[5.203363,0.048393,1.3053,100.55615,-85.8023,19.55053]; %Jupiter
 % a,e,i,O,w,th is naming convention used in functions
-t0=datetime(2000,1,1,11,58,0); %setting initial time to the J2000 parameter
-ToFfun=@(tt) etime(datevec(tt),datevec(t0))/5.0226757e6; %anonymous function for finding ToF in AU, might use actual function
+t0=[2000,1,1,11,58,0]; %setting initial time to the J2000 parameter
+ToFfun=@(tt) etime(tt,t0)/5.0226757e6; %anonymous function for finding ToF in AU, might use actual function
 
 %% Orbital Elements to Initial Vectors
 % Finds perifocal vectors from orbital elements, then converts to
@@ -35,9 +35,9 @@ ToFfun=@(tt) etime(datevec(tt),datevec(t0))/5.0226757e6; %anonymous function for
 [rxyzJ0,vxyzJ0]=OEtoXYZ(oeJ(1),oeJ(2),oeJ(3),oeJ(4),oeJ(5),oeJ(6),1);
 
 %% Task 1
-% Obtains rxyz and vxyz vectors for the planets on Dec 25, 2025 at 0837 UTC
+% Obtains rxyz and vxyz vectors for the planets on mar 14, 2021 at 0159 UTC
 % as well as the true anomalies
-t1=datetime(2025,12,25,08,37,00); %specified time as datetime vector
+t1=[2021,3,14,01,59,00]; %specified time as a vector
 ToF1=ToFfun(t1); %finding time of flight in AU
 [rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToF1,1); %obtaining final vectors for Earth
 [thE]=Tanomaly(rxyzE1,vxyzE1,1); %Earth true anomaly
@@ -45,8 +45,7 @@ ToF1=ToFfun(t1); %finding time of flight in AU
 [thM]=Tanomaly(rxyzM1,vxyzM1,1);
 [rxyzJ1,vxyzJ1]=uToF(rxyzJ0,vxyzJ0,ToF1,1); %obtaining final vectors for Jupiter
 [thJ]=Tanomaly(rxyzJ1,vxyzJ1,1);
-
-
+fprintf("Earth anomaly: %5.2f Mars anomaly %5.2f",thE,thM);
 
 %% Functions
 % Organized here for ease of editing
@@ -106,7 +105,7 @@ end
 function [ToF] = TOFcalc(t1) %might just use anonymous function
 %takes datetime vector input and finds ToF in heliocentric TU
 t0=datetime(2000,1,1,11,58,0); %setting initial time to the J2000 parameter
-ToF=etime(t1,t0)/5.0226757e6;
+ToF=etime(timevec(t1),timevec(t0))/5.0226757e6; %for actual use, should remove datetime and timevec
 end
 
 function [th] = Tanomaly(rxyz,vxyz,mu)
