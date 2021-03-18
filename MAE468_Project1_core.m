@@ -20,12 +20,12 @@ clc
 
 mu=1; %canonical mu, AU^3/TU^2 heliocentric or DU^3/TU^2 geocentric
 % a,e,i,OMEGA,omega,theta (AU,unitless,deg,deg,deg,deg)
-oeE=[1.000000,0.01671,0.00005,-11.26064,114.20783,-2.48284]; %earth
-oeM=[1.523662,0.093412,1.85061,49.57854,286.4623,19.41248]; %mars
-oeJ=[5.203363,0.048393,1.3053,100.55615,-85.8023,19.55053]; %jupiter
+oeE=[1.000000,0.01671,0.00005,-11.26064,114.20783,-2.48284]; %Earth
+oeM=[1.523662,0.093412,1.85061,49.57854,286.4623,19.41248]; %Mars
+oeJ=[5.203363,0.048393,1.3053,100.55615,-85.8023,19.55053]; %Jupiter
 % a,e,i,O,w,th is naming convention used in functions
 t0=datetime(2000,1,1,11,58,0); %setting initial time to the J2000 parameter
-ToFfun=@(tt) etime(tt,t0)/5.0226757e6; %anonymous function for finding ToF in AU, might use actual function
+ToFfun=@(tt) etime(datevec(tt),datevec(t0))/5.0226757e6; %anonymous function for finding ToF in AU, might use actual function
 
 %% Orbital Elements to Initial Vectors
 % Finds perifocal vectors from orbital elements, then converts to
@@ -39,8 +39,12 @@ ToFfun=@(tt) etime(tt,t0)/5.0226757e6; %anonymous function for finding ToF in AU
 % as well as the true anomalies
 t1=datetime(2025,12,25,08,37,00); %specified time as datetime vector
 ToF1=ToFfun(t1); %finding time of flight in AU
-[rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToF1,1); %obtaining final vectors for earth
-[thE]=Tanomaly(rxyzE1,vxyzE1,1); %earth true anomaly
+[rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToF1,1); %obtaining final vectors for Earth
+[thE]=Tanomaly(rxyzE1,vxyzE1,1); %Earth true anomaly
+[rxyzM1,vxyzM1]=uToF(rxyzM0,vxyzM0,ToF1,1); %obtaining final vectors for Mars
+[thM]=Tanomaly(rxyzM1,vxyzM1,1);
+[rxyzJ1,vxyzJ1]=uToF(rxyzJ0,vxyzJ0,ToF1,1); %obtaining final vectors for Jupiter
+[thJ]=Tanomaly(rxyzJ1,vxyzJ1,1);
 
 
 
