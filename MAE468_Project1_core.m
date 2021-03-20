@@ -76,9 +76,10 @@ fprintf("\nMars at Arrival\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4
 % Determine net deltaV assuming departure from 200km Earth circ parking orbit
 % and arrival at 1000 km Mars circ park orb
 [vxyz1,vxyz2]=Gorb(rxyzE1,rxyzM2,ToFfun(t0+days(190)),1,zg); %spacecraft heliocentric departure and arrival velocities
-delvt1=norm(vCAtoM(vxyz1-vxyzE1)); %finding delta V from Earth orbit to transfer orbit in km/s
-delvt2=norm(vCAtoM(vxyz2-vxyzM2));
-fprintf("\nNet transfer orbit deltaV magnitude: %5.4f km/s\n",delvt1+delvt2); %displaying net delta v for heliocentric relative v=0 to planets
+delvt1=vCAtoM(vxyz1-vxyzE1); %finding delta V from Earth Vrel=0 to transfer orbit in km/s
+delvt2=vCAtoM(vxyz2-vxyzM2); %finding delta V from transfer orbit to Mars Vrel=0 in km/s
+
+% fprintf("\nNet transfer orbit deltaV magnitude: %5.4f km/s\n",delvt1+delvt2); %displaying net delta v for heliocentric relative v=0 to planets
 
 %% Functions
 % Organized here for ease of editing
@@ -135,12 +136,6 @@ dg=1-a/r1m+a/r1m*cos(x/sqrt(a));
 v1=df*r0+dg*v0; %final velocity vector
 end
 
-% function [ToF] = TOFcalc(t1) %might just use anonymous function
-% %takes datetime vector input and finds ToF in heliocentric TU
-% t0=datetime(2000,1,1,11,58,0); %setting initial time to the J2000 parameter
-% ToF=etime(timevec(t1),timevec(t0))/5.0226757e6; %should remove datetime and timevec for actual use
-% end
-
 function [th] = Tanomaly(rxyz,vxyz,mu)
 % takes heliocentric-ecliptic vectors and outputs the true anomaly in deg
 rm=norm(rxyz);
@@ -152,8 +147,6 @@ if dot(rxyz,vxyz)<0
 end
 end
 
-%% Gauss Orbit
-% inputs r0, ToF, mu, r1, zg
 function [v0s,v1s] = Gorb(r0,r1,ToF,mu,zg)
 r0m=norm(r0); %initial radius magnitude
 r1m=norm(r1); %final radius magnitude
