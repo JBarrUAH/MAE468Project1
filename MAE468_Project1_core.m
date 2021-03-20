@@ -61,9 +61,9 @@ vCAtoM=@(v) rCAtoM(v)/5022604.8; %km/s (AU/TU sun to km/s)
 % the 190 day shortway transfer. Arbitrarily set the Earth date, needs to be between
 % 2021 and 2030.
 
-for it=0:5:50
+for it=-6:1:6
 %Departure time is 1700 EST (2200 UTC), which seems reasonable based on past launches.
-tE1=datetime(2022,7,29,22,0,0)+days(it); %setting departure date
+tE1=datetime(2022,9,12,18,0,0)+hours(it); %setting departure date
 tM2=tE1+days(190); %adding 190 days to find the future Mars position
 
 [rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(tE1),1); %obtaining Earth vectors at departure
