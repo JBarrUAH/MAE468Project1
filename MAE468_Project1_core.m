@@ -32,7 +32,7 @@ zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(
 
 %% Orbital Elements to Initial Vectors
 % Finds perifocal vectors from orbital elements, then converts to
-% vectors in heliocentric frame.
+% vectors in heliocentric frame. Setup work for other tasks.
 [rxyzE0,vxyzE0]=OEtoXYZ(oeE(1),oeE(2),oeE(3),oeE(4),oeE(5),oeE(6),1);
 [rxyzM0,vxyzM0]=OEtoXYZ(oeM(1),oeM(2),oeM(3),oeM(4),oeM(5),oeM(6),1);
 [rxyzJ0,vxyzJ0]=OEtoXYZ(oeJ(1),oeJ(2),oeJ(3),oeJ(4),oeJ(5),oeJ(6),1);
@@ -51,6 +51,17 @@ ToF1=ToFfun(t1); %finding time of flight in AU
 fprintf("\nEarth Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3),thE); %displaying results
 fprintf("\nMars Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzM1(1),rxyzM1(2),rxyzM1(3),vxyzM1(1),vxyzM1(2),vxyzM1(3),thM); %displaying results
 fprintf("\nJupiter Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzJ1(1),rxyzJ1(2),rxyzJ1(3),vxyzJ1(1),vxyzJ1(2),vxyzJ1(3),thJ); %displaying results
+
+%% Task 2
+% Obtains positions of Earth and Mars with a 190 day interval, then
+% calculates the required V0 of the spacecraft from Earth's R0 to make
+% the 190 day shortway transfer. Arbitrarily set the Earth date, needs to be between
+% 2021 and 2030.
+
+%Departure time is 1700 EST (2200 UTC), which seems reasonable based on past launches.
+tE0=datetime(2024,2,29,22,0,0); %setting departure date to the next leap day because why not.
+tM1=tE0+days(190); %adding 190 days to find the future Mars position
+
 
 
 %% Functions
