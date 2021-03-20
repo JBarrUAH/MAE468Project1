@@ -63,7 +63,7 @@ vCAtoM=@(v) rCAtoM(v)/5022604.8; %km/s (AU/TU sun to km/s)
 
 for it=0:5:50
 %Departure time is 1700 EST (2200 UTC), which seems reasonable based on past launches.
-tE1=datetime(2024,2,29,22,0,0)+days(it); %setting departure date to the next leap day because why not.
+tE1=datetime(2022,7,29,22,0,0)+days(it); %setting departure date
 tM2=tE1+days(190); %adding 190 days to find the future Mars position
 
 [rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(tE1),1); %obtaining Earth vectors at departure
@@ -74,8 +74,10 @@ tM2=tE1+days(190); %adding 190 days to find the future Mars position
 % fprintf("\nMars at Arrival\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzM2(1),rxyzM2(2),rxyzM2(3),vxyzM2(1),vxyzM2(2),vxyzM2(3),thM2);
 
 [vxyz1,vxyz2]=Gorb(rxyzE1,rxyzM2,ToFfun(t0+days(190)),1,zg); %spacecraft heliocentric departure and arrival velocities
-delv1=vCAtoM(vxyz1-vxyzE1);
-fprintf("\nDeparture deltaV: %5.4f %5.4f %5.4f km/s",delv1(1),delv1(2),delv1(3)); %displaying results
+delv1=norm(vCAtoM(vxyz1-vxyzE1));
+delv2=norm(vCAtoM(vxyz2-vxyzM2));
+disp(char(tE1));
+fprintf("Net deltaV magnitude: %5.4f km/s\n",delv1+delv2); %displaying results
 end
 %Note: need to check (vxyz1-vxyzE1)*5022604.8 to get delta v components in
 %km/s to see if they are reasonable. Should probably figure out some sort
