@@ -30,6 +30,9 @@ ToFfun=@(tt) etime(datevec(tt),datevec(t0))/5.0226757e6; %anonymous function for
 zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(2pi)^2 
 % NOTE: Use 18 if elliptical, 0 if parabolic, -18 if hyperbolic
 
+rCAtoM=@(r) r*149597870.7; %km (AU sun to km)
+vCAtoM=@(v) rCAtoM(v)/5022604.8; %km/s (AU/TU sun to km/s)
+
 %% Orbital Elements to Initial Vectors
 % Finds perifocal vectors from orbital elements, then converts to
 % vectors in heliocentric frame. Setup work for other tasks.
@@ -37,20 +40,20 @@ zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(
 [rxyzM0,vxyzM0]=OEtoXYZ(oeM(1),oeM(2),oeM(3),oeM(4),oeM(5),oeM(6),1);
 [rxyzJ0,vxyzJ0]=OEtoXYZ(oeJ(1),oeJ(2),oeJ(3),oeJ(4),oeJ(5),oeJ(6),1);
 
-%% Task 1
-% Obtains rxyz and vxyz vectors for the planets on Dec 25, 2025 at 0837 UTC
-% as well as the true anomalies
-t1=datetime(2025,12,25,08,37,00); %specified time as datetime vector
-ToF1=ToFfun(t1); %finding time of flight in AU
-[rxyzE01,vxyzE01]=uToF(rxyzE0,vxyzE0,ToF1,1); %obtaining final vectors for Earth
-[thE01]=Tanomaly(rxyzE01,vxyzE01,1); %Earth true anomaly
-[rxyzM01,vxyzM01]=uToF(rxyzM0,vxyzM0,ToF1,1); %obtaining final vectors for Mars
-[thM01]=Tanomaly(rxyzM01,vxyzM01,1);
-[rxyzJ01,vxyzJ01]=uToF(rxyzJ0,vxyzJ0,ToF1,1); %obtaining final vectors for Jupiter
-[thJ01]=Tanomaly(rxyzJ01,vxyzJ01,1);
-fprintf("\nEarth Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees",rxyzE01(1),rxyzE01(2),rxyzE01(3),vxyzE01(1),vxyzE01(2),vxyzE01(3),thE01); %displaying results
-fprintf("\nMars Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees",rxyzM01(1),rxyzM01(2),rxyzM01(3),vxyzM01(1),vxyzM01(2),vxyzM01(3),thM01); %displaying results
-fprintf("\nJupiter Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzJ01(1),rxyzJ01(2),rxyzJ01(3),vxyzJ01(1),vxyzJ01(2),vxyzJ01(3),thJ01); %displaying results
+% %% Task 1
+% % Obtains rxyz and vxyz vectors for the planets on Dec 25, 2025 at 0837 UTC
+% % as well as the true anomalies
+% t1=datetime(2025,12,25,08,37,00); %specified time as datetime vector
+% ToF1=ToFfun(t1); %finding time of flight in AU
+% [rxyzE01,vxyzE01]=uToF(rxyzE0,vxyzE0,ToF1,1); %obtaining final vectors for Earth
+% [thE01]=Tanomaly(rxyzE01,vxyzE01,1); %Earth true anomaly
+% [rxyzM01,vxyzM01]=uToF(rxyzM0,vxyzM0,ToF1,1); %obtaining final vectors for Mars
+% [thM01]=Tanomaly(rxyzM01,vxyzM01,1);
+% [rxyzJ01,vxyzJ01]=uToF(rxyzJ0,vxyzJ0,ToF1,1); %obtaining final vectors for Jupiter
+% [thJ01]=Tanomaly(rxyzJ01,vxyzJ01,1);
+% fprintf("\nEarth Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees",rxyzE01(1),rxyzE01(2),rxyzE01(3),vxyzE01(1),vxyzE01(2),vxyzE01(3),thE01); %displaying results
+% fprintf("\nMars Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees",rxyzM01(1),rxyzM01(2),rxyzM01(3),vxyzM01(1),vxyzM01(2),vxyzM01(3),thM01); %displaying results
+% fprintf("\nJupiter Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzJ01(1),rxyzJ01(2),rxyzJ01(3),vxyzJ01(1),vxyzJ01(2),vxyzJ01(3),thJ01); %displaying results
 
 %% Task 2
 % Obtains positions of Earth and Mars with a 190 day interval, then
@@ -58,18 +61,22 @@ fprintf("\nJupiter Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f
 % the 190 day shortway transfer. Arbitrarily set the Earth date, needs to be between
 % 2021 and 2030.
 
+for it=0:5:50
 %Departure time is 1700 EST (2200 UTC), which seems reasonable based on past launches.
-tE1=datetime(2024,2,29,22,0,0); %setting departure date to the next leap day because why not.
+tE1=datetime(2024,2,29,22,0,0)+days(it); %setting departure date to the next leap day because why not.
 tM2=tE1+days(190); %adding 190 days to find the future Mars position
 
 [rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(tE1),1); %obtaining Earth vectors at departure
 [thE1]=Tanomaly(rxyzE1,vxyzE1,1); %Earth true anomaly
 [rxyzM2,vxyzM2]=uToF(rxyzM0,vxyzM0,ToFfun(tM2),1); %obtaining Mars vectors at arrival
 [thM2]=Tanomaly(rxyzM2,vxyzM2,1); %Mars true anomaly
-fprintf("\nEarth at Departure\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3),thE1); %displaying results
-fprintf("\nMars at Arrival\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzM2(1),rxyzM2(2),rxyzM2(3),vxyzM2(1),vxyzM2(2),vxyzM2(3),thM2);
+% fprintf("\nEarth at Departure\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3),thE1); %displaying results
+% fprintf("\nMars at Arrival\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzM2(1),rxyzM2(2),rxyzM2(3),vxyzM2(1),vxyzM2(2),vxyzM2(3),thM2);
 
 [vxyz1,vxyz2]=Gorb(rxyzE1,rxyzM2,ToFfun(t0+days(190)),1,zg); %spacecraft heliocentric departure and arrival velocities
+delv1=vCAtoM(vxyz1-vxyzE1);
+fprintf("\nDeparture deltaV: %5.4f %5.4f %5.4f km/s",delv1(1),delv1(2),delv1(3)); %displaying results
+end
 %Note: need to check (vxyz1-vxyzE1)*5022604.8 to get delta v components in
 %km/s to see if they are reasonable. Should probably figure out some sort
 %of iterative loop that checks different dates until it finds a decent pair.
