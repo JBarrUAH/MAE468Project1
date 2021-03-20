@@ -40,7 +40,7 @@ zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(
 %% Task 1
 % Obtains rxyz and vxyz vectors for the planets on Dec 25, 2025 at 0837 UTC
 % as well as the true anomalies
-t1=datetime(2025,12,25,08,37,00); %specified time as datetime vector
+t1=[2025,12,25,08,37,00]; %specified time as datevec vector
 ToF1=ToFfun(t1); %finding time of flight in AU
 [rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToF1,1); %obtaining final vectors for Earth
 [thE]=Tanomaly(rxyzE1,vxyzE1,1); %Earth true anomaly
