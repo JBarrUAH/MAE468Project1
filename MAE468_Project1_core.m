@@ -48,8 +48,9 @@ ToF1=ToFfun(t1); %finding time of flight in AU
 [thM]=Tanomaly(rxyzM1,vxyzM1,1);
 [rxyzJ1,vxyzJ1]=uToF(rxyzJ0,vxyzJ0,ToF1,1); %obtaining final vectors for Jupiter
 [thJ]=Tanomaly(rxyzJ1,vxyzJ1,1);
-fprintf("Earth anomaly: %5.2f Mars anomaly %5.2f",thE,thM); %outputting true anomalies
-
+fprintf("\nEarth Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3),thE); %displaying results
+fprintf("\nMars Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzM1(1),rxyzM1(2),rxyzM1(3),vxyzM1(1),vxyzM1(2),vxyzM1(3),thM); %displaying results
+fprintf("\nJupiter Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzJ1(1),rxyzJ1(2),rxyzJ1(3),vxyzJ1(1),vxyzJ1(2),vxyzJ1(3),thJ); %displaying results
 
 
 %% Functions
