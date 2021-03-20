@@ -51,9 +51,9 @@ ToF1=ToFfun(t1); %finding time of flight in AU
 [thM01]=Tanomaly(rxyzM01,vxyzM01,1);
 [rxyzJ01,vxyzJ01]=uToF(rxyzJ0,vxyzJ0,ToF1,1); %obtaining final vectors for Jupiter
 [thJ01]=Tanomaly(rxyzJ01,vxyzJ01,1);
-fprintf("\nEarth Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees",rxyzE01(1),rxyzE01(2),rxyzE01(3),vxyzE01(1),vxyzE01(2),vxyzE01(3),thE01); %displaying results
-fprintf("\nMars Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees",rxyzM01(1),rxyzM01(2),rxyzM01(3),vxyzM01(1),vxyzM01(2),vxyzM01(3),thM01); %displaying results
-fprintf("\nJupiter Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzJ01(1),rxyzJ01(2),rxyzJ01(3),vxyzJ01(1),vxyzJ01(2),vxyzJ01(3),thJ01); %displaying results
+fprintf("\nEarth Data\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %5.4f %5.4f AU/TU\n\t True anomaly: %5.2f degrees",rxyzE01(1),rxyzE01(2),rxyzE01(3),vxyzE01(1),vxyzE01(2),vxyzE01(3),thE01); %displaying results
+fprintf("\nMars Data\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %5.4f %5.4f AU/TU\n\t True anomaly: %5.2f degrees",rxyzM01(1),rxyzM01(2),rxyzM01(3),vxyzM01(1),vxyzM01(2),vxyzM01(3),thM01); %displaying results
+fprintf("\nJupiter Data\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %5.4f %5.4f AU/TU\n\t True anomaly: %5.2f degrees\n\n",rxyzJ01(1),rxyzJ01(2),rxyzJ01(3),vxyzJ01(1),vxyzJ01(2),vxyzJ01(3),thJ01); %displaying results
 
 %% Task 2
 % Obtains positions of Earth and Mars with a 190 day interval, then
@@ -61,21 +61,22 @@ fprintf("\nJupiter Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f
 % the 190 day shortway transfer. Arbitrarily set the Earth date, needs to be between
 % 2021 and 2030.
 
-tE1=datetime(2022,9,12,13,0,0); %setting departure date, this date and time were determined to be optimal through manual iteration
+tE1=datetime(2022,9,12,13,0,0); %setting departure date, 12 Sep 2022 at 1300hrs UTC was determined to be optimal through manual iteration
 tM2=tE1+days(190); %adding 190 days to find the future Mars position
 
 [rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(tE1),1); %obtaining Earth vectors at departure
 [thE1]=Tanomaly(rxyzE1,vxyzE1,1); %Earth true anomaly
 [rxyzM2,vxyzM2]=uToF(rxyzM0,vxyzM0,ToFfun(tM2),1); %obtaining Mars vectors at arrival
 [thM2]=Tanomaly(rxyzM2,vxyzM2,1); %Mars true anomaly
-fprintf("\nEarth at Departure\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3),thE1); %displaying results
-fprintf("\nMars at Arrival\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzM2(1),rxyzM2(2),rxyzM2(3),vxyzM2(1),vxyzM2(2),vxyzM2(3),thM2);
+disp("Soonest ideal launch date: "+char(tE1));
+fprintf("Earth at Departure\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %5.4f %5.4f AU/TU\n\t True anomaly: %5.2f degrees",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3),thE1); %displaying results
+fprintf("\nMars at Arrival\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %5.4f %5.4f AU/TU\n\t True anomaly: %5.2f degrees\n",rxyzM2(1),rxyzM2(2),rxyzM2(3),vxyzM2(1),vxyzM2(2),vxyzM2(3),thM2);
 
 %% Task 3
 % Determine net deltaV assuming departure from 200km Earth circ parking orbit
 % and arrival at 1000 km Mars circ park orb
 [vxyz1,vxyz2]=Gorb(rxyzE1,rxyzM2,ToFfun(t0+days(190)),1,zg); %spacecraft heliocentric departure and arrival velocities
-delvt1=norm(vCAtoM(vxyz1-vxyzE1)); %finding delta V from Earth orbit to transfer orbit
+delvt1=norm(vCAtoM(vxyz1-vxyzE1)); %finding delta V from Earth orbit to transfer orbit in km/s
 delvt2=norm(vCAtoM(vxyz2-vxyzM2));
 fprintf("\nNet transfer orbit deltaV magnitude: %5.4f km/s\n",delvt1+delvt2); %displaying net delta v for heliocentric relative v=0 to planets
 
