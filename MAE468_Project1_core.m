@@ -46,7 +46,7 @@ ToF1=ToFfun(t1); %finding time of flight in AU
 [rxyzJ1,vxyzJ1]=uToF(rxyzJ0,vxyzJ0,ToF1,1); %obtaining final vectors for Jupiter
 [thJ]=Tanomaly(rxyzJ1,vxyzJ1,1);
 fprintf("Earth anomaly: %5.2f Mars anomaly %5.2f",thE,thM); %outputting true anomalies
-fprintf("\n should be 70.87 and 291.3\n"); %reference values provided by Xu
+fprintf("\n should be 70.87 and 123.05\n"); %reference values provided by Xu
 
 %% Functions
 % Organized here for ease of editing
