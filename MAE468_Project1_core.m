@@ -100,7 +100,7 @@ ene=v0m^2/2-mu/r0m; %orbital energy
 a=-mu/(2*ene); % semi-major axis
 xo=ToF*sqrt(mu)/a; %initial guess for x
 zo=xo^2/a; %initial guess for z
-% Selecting anonymous functions used during iteration based on orbit
+%Selecting anonymous functions used during iteration based on orbit
 if ene == 0 %parabolic parameters
     S=@(z) 1/factorial(3)-z/factorial(5)+z^2/factorial(7)-z^3/factorial(9);
     C=@(z) 1/factorial(2)-z/factorial(4)+z^2/factorial(6)-z^3/factorial(8);
@@ -113,7 +113,7 @@ elseif zo < 0 %hyperbolic parameters
 else
     fprintf("The universe has encountered a fatal error. Your spacecraft will now self-destruct");
 end
-% iterative solver
+%iterative solver
 while 1
     t=((xo^3*S(zo))+(dot(r0,v0)/sqrt(mu)*xo^2*C(zo))+(r0m*xo*(1-zo*S(zo))))/sqrt(mu);
     rn=xo^2*C(zo)+dot(r0,v0)/sqrt(mu)*xo*(1-zo*S(zo))+r0m*(1-zo*C(zo));
@@ -121,7 +121,7 @@ while 1
         x=xo;
         break
     end
-    xo=xo+(ToF-t)/(rn/sqrt(mu)); % newton-step to next x guess
+    xo=xo+(ToF-t)/(rn/sqrt(mu)); %newton-step to next x guess
     zo=xo^2/a;
 end
 %processing the solution
@@ -146,12 +146,13 @@ end
 end
 
 function [v0s,v1s] = Gorb(r0,r1,ToF,mu,zg)
+% Gauss Orbit solver (all types of orbit)
 r0m=norm(r0); %initial radius magnitude
 r1m=norm(r1); %final radius magnitude
 Dths=acosd(dot(r0,r1)/(r0m*r1m)); %delta theta (short path), in degrees
 
 As=sqrt(r0m*r1m)*sind(Dths)/sqrt(1-cosd(Dths)); %short path A
-% Selecting anonymous functions used during iteration based on orbit
+%Selecting anonymous functions used during iteration based on orbit
 if zg == 0 %parabolic parameters
     S=@(z) 1/factorial(3)-z/factorial(5)+z^2/factorial(7)-z^3/factorial(9);
     C=@(z) 1/factorial(2)-z/factorial(4)+z^2/factorial(6)-z^3/factorial(8);
