@@ -24,8 +24,8 @@ oeE=[1.000000,0.01671,0.00005,-11.26064,114.20783,-2.48284]; %Earth
 oeM=[1.523662,0.093412,1.85061,49.57854,286.4623,19.41248]; %Mars
 oeJ=[5.203363,0.048393,1.3053,100.55615,-85.8023,19.55053]; %Jupiter
 % a,e,i,O,w,th is naming convention used in functions
-t0=[2000,1,1,11,58,0]; %setting initial time to the J2000 parameter
-ToFfun=@(tt) etime(tt,t0)/5.0226757e6; %anonymous function for finding ToF in AU, might use actual function
+t0=datetime(2000,1,1,11,58,0); %setting initial time to the J2000 parameter
+ToFfun=@(tt) etime(datevec(tt),datevec(t0))/5.0226757e6; %anonymous function for finding ToF in AU, might use actual function
 
 zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(2pi)^2 
 % NOTE: Use 18 if elliptical, 0 if parabolic, -18 if hyperbolic
@@ -40,7 +40,7 @@ zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(
 %% Task 1
 % Obtains rxyz and vxyz vectors for the planets on Dec 25, 2025 at 0837 UTC
 % as well as the true anomalies
-t1=[2025,12,25,08,37,00]; %specified time as datevec vector
+t1=datetime(2025,12,25,08,37,00); %specified time as datetime vector
 ToF1=ToFfun(t1); %finding time of flight in AU
 [rxyzE01,vxyzE01]=uToF(rxyzE0,vxyzE0,ToF1,1); %obtaining final vectors for Earth
 [thE01]=Tanomaly(rxyzE01,vxyzE01,1); %Earth true anomaly
@@ -48,8 +48,8 @@ ToF1=ToFfun(t1); %finding time of flight in AU
 [thM01]=Tanomaly(rxyzM01,vxyzM01,1);
 [rxyzJ01,vxyzJ01]=uToF(rxyzJ0,vxyzJ0,ToF1,1); %obtaining final vectors for Jupiter
 [thJ01]=Tanomaly(rxyzJ01,vxyzJ01,1);
-fprintf("\nEarth Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzE01(1),rxyzE01(2),rxyzE01(3),vxyzE01(1),vxyzE01(2),vxyzE01(3),thE01); %displaying results
-fprintf("\nMars Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzM01(1),rxyzM01(2),rxyzM01(3),vxyzM01(1),vxyzM01(2),vxyzM01(3),thM01); %displaying results
+fprintf("\nEarth Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees",rxyzE01(1),rxyzE01(2),rxyzE01(3),vxyzE01(1),vxyzE01(2),vxyzE01(3),thE01); %displaying results
+fprintf("\nMars Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees",rxyzM01(1),rxyzM01(2),rxyzM01(3),vxyzM01(1),vxyzM01(2),vxyzM01(3),thM01); %displaying results
 fprintf("\nJupiter Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzJ01(1),rxyzJ01(2),rxyzJ01(3),vxyzJ01(1),vxyzJ01(2),vxyzJ01(3),thJ01); %displaying results
 
 %% Task 2
@@ -62,12 +62,17 @@ fprintf("\nJupiter Data\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f
 tE1=datetime(2024,2,29,22,0,0); %setting departure date to the next leap day because why not.
 tM2=tE1+days(190); %adding 190 days to find the future Mars position
 
-[rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(datevec(tE1)),1); %obtaining Earth vectors at departure
+[rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(tE1),1); %obtaining Earth vectors at departure
 [thE1]=Tanomaly(rxyzE1,vxyzE1,1); %Earth true anomaly
-[rxyzM2,vxyzM2]=uToF(rxyzM0,vxyzM0,ToFfun(datevec(tM2)),1); %obtaining Mars vectors at arrival
+[rxyzM2,vxyzM2]=uToF(rxyzM0,vxyzM0,ToFfun(tM2),1); %obtaining Mars vectors at arrival
 [thM2]=Tanomaly(rxyzM2,vxyzM2,1); %Mars true anomaly
+fprintf("\nEarth at Departure\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3),thE1); %displaying results
+fprintf("\nMars at Arrival\n Position: %5.4f %5.4f %5.4f AU\n Velocity: %5.4f %5.4f %5.4f AU/TU\n True anomaly: %5.2f degrees\n",rxyzM2(1),rxyzM2(2),rxyzM2(3),vxyzM2(1),vxyzM2(2),vxyzM2(3),thM2);
 
-
+[vxyz1,vxyz2]=Gorb(rxyzE1,rxyzM2,ToFfun(t0+days(190)),1,zg); %spacecraft heliocentric departure and arrival velocities
+%Note: need to check (vxyz1-vxyzE1)*5022604.8 to get delta v components in
+%km/s to see if they are reasonable. Should probably figure out some sort
+%of iterative loop that checks different dates until it finds a decent pair.
 %% Functions
 % Organized here for ease of editing
 function [rxyz,vxyz] = OEtoXYZ(a,e,i,O,w,th,mu)
@@ -142,7 +147,7 @@ end
 
 %% Gauss Orbit
 % inputs r0, ToF, mu, r1, zg
-function [v0,v1] = Gorb(r0,r1,ToF,mu,zg)
+function [v0s,v1s] = Gorb(r0,r1,ToF,mu,zg)
 r0m=norm(r0); %initial radius magnitude
 r1m=norm(r1); %final radius magnitude
 Dths=acosd(dot(r0,r1)/(r0m*r1m)); %delta theta (short path), in degrees
