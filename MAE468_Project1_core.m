@@ -44,11 +44,11 @@ vCAtoM=@(v) v*149597870.7/5022604.8; %km/s (AU/TU sun to km/s)
 % as well as the true anomalies
 t1=datetime(2025,12,25,08,37,00); %specified time as datetime vector
 [rxyzE01,vxyzE01]=uToF(rxyzE0,vxyzE0,ToFfun(t1),1); %obtaining final vectors for Earth
-[~,~,~,~,~,thE01]=OrbitalElements(rxyzE01,vxyzE01,1); %Earth true anomaly
+[~,~,~,~,~,thE01]=XYZtoOE(rxyzE01,vxyzE01,1); %Earth true anomaly
 [rxyzM01,vxyzM01]=uToF(rxyzM0,vxyzM0,ToFfun(t1),1); %obtaining final vectors for Mars
-[~,~,~,~,~,thM01]=OrbitalElements(rxyzM01,vxyzM01,1);
+[~,~,~,~,~,thM01]=XYZtoOE(rxyzM01,vxyzM01,1);
 [rxyzJ01,vxyzJ01]=uToF(rxyzJ0,vxyzJ0,ToFfun(t1),1); %obtaining final vectors for Jupiter
-[~,~,~,~,~,thJ01]=OrbitalElements(rxyzJ01,vxyzJ01,1);
+[~,~,~,~,~,thJ01]=XYZtoOE(rxyzJ01,vxyzJ01,1);
 fprintf("Earth Data\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %5.4f %5.4f AU/TU\n\t True anomaly: %5.2f degrees",rxyzE01(1),rxyzE01(2),rxyzE01(3),vxyzE01(1),vxyzE01(2),vxyzE01(3),thE01); %displaying results
 fprintf("\nMars Data\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %5.4f %5.4f AU/TU\n\t True anomaly: %5.2f degrees",rxyzM01(1),rxyzM01(2),rxyzM01(3),vxyzM01(1),vxyzM01(2),vxyzM01(3),thM01); %displaying results
 fprintf("\nJupiter Data\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %5.4f %5.4f AU/TU\n\t True anomaly: %5.2f degrees\n\n",rxyzJ01(1),rxyzJ01(2),rxyzJ01(3),vxyzJ01(1),vxyzJ01(2),vxyzJ01(3),thJ01); %displaying results
@@ -64,14 +64,14 @@ tM2=tE1+days(190); %adding 190 days to find the future Mars position
 
 % Departure
 [rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(tE1),1); %obtaining Earth vectors at departure
-[~,~,~,~,~,thE1]=OrbitalElements(rxyzE1,vxyzE1,1); %Earth true anomaly
+[~,~,~,~,~,thE1]=XYZtoOE(rxyzE1,vxyzE1,1); %Earth true anomaly
 [rxyzM1,vxyzM1]=uToF(rxyzM0,vxyzM0,ToFfun(tE1),1); %obtaining Mars vectors at arrival
-[~,~,~,~,~,thM1]=OrbitalElements(rxyzM1,vxyzM1,1); %Mars true anomaly
+[~,~,~,~,~,thM1]=XYZtoOE(rxyzM1,vxyzM1,1); %Mars true anomaly
 % Arrival
 [rxyzE2,vxyzE2]=uToF(rxyzE0,vxyzE0,ToFfun(tM2),1); %obtaining Earth vectors at departure
-[~,~,~,~,~,thE2]=OrbitalElements(rxyzE2,vxyzE2,1); %Earth true anomaly
+[~,~,~,~,~,thE2]=XYZtoOE(rxyzE2,vxyzE2,1); %Earth true anomaly
 [rxyzM2,vxyzM2]=uToF(rxyzM0,vxyzM0,ToFfun(tM2),1); %obtaining Mars vectors at arrival
-[~,~,~,~,~,thM2]=OrbitalElements(rxyzM2,vxyzM2,1); %Mars true anomaly
+[~,~,~,~,~,thM2]=XYZtoOE(rxyzM2,vxyzM2,1); %Mars true anomaly
 disp("Soonest ideal launch date: "+char(tE1));
 fprintf("Earth at Departure\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %5.4f %5.4f AU/TU\n\t True anomaly: %5.2f degrees",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3),thE1); %displaying results
 fprintf("\nMars at Arrival\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %5.4f %5.4f AU/TU\n\t True anomaly: %5.2f degrees\n",rxyzM2(1),rxyzM2(2),rxyzM2(3),vxyzM2(1),vxyzM2(2),vxyzM2(3),thM2);
@@ -88,16 +88,16 @@ clr = ["y";"g";"r"];
 
 %% Task 3
 % Determine net deltaV assuming departure from 200km Earth circ parking orbit
-% and arrival at 1000 km Mars circ park orb
+% and arrival at 1000 km Mars circular parking orbit
 [vxyz1,vxyz2]=Gorb(rxyzE1,rxyzM2,ToFfun(t0+days(190)),1,zg); %spacecraft heliocentric departure and arrival velocities
 vinf1=vCAtoM(norm(vxyz1-vxyzE1)); %finding vinf at Earth in km/s
 vinf2=vCAtoM(norm(vxyz2-vxyzM2)); %finding vinf at Mars in km/s
-dvE=sqrt(2*(vinf1^2/2+3.986e5/6578.1))-sqrt(3.986e5/6578.1); %finding dv at Earth orbit
-dvM=sqrt(4.2828e4/4396.2)-sqrt(2*(vinf2^2/2+4.2828e4/4396.2));%finding dv at Mars orbit
-fprintf("\nNet mission dv: %5.4f km/s\n",abs(dvE)+abs(dvM)); %displaying net delta v for entire mission
+dvE=sqrt(2*(vinf1^2/2+3.986e5/6578.1))-sqrt(3.986e5/6578.1); %finding dv for Earth orbit
+dvM=sqrt(4.2828e4/4396.2)-sqrt(2*(vinf2^2/2+4.2828e4/4396.2));%finding dv for Mars orbit
+fprintf("\nNet mission dv: %5.4f km/s\n",abs(dvE)+abs(dvM)); %displaying net delta v magnitude for entire mission
 
 %% Trajectory plotting
-[e,a,~,~,~,th] = OrbitalElements(rxyzE1,vxyz1,1);
+[e,a,~,~,~,th] = XYZtoOE(rxyzE1,vxyz1,1);
 figure(1)
 hold on
 plotBody(Rsun*Rfactor(1),S(1),S(2),lbl(1),clr(1),.1)
@@ -191,7 +191,8 @@ dg=1-a/r1m+a/r1m*cos(x/sqrt(a));
 v1=df*r0+dg*v0; %final velocity vector
 end
 
-function [e,a,i,O,w,th] = OrbitalElements(rxyz,vxyz,mu)
+function [e,a,i,O,w,th] = XYZtoOE(rxyz,vxyz,mu)
+% Heliocentric vectors to orbital elements
 % inputs rxyz, vxyz, mu
 hxyz=cross(rxyz,vxyz);
 hm=norm(hxyz);
