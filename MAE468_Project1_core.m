@@ -78,10 +78,42 @@ delvt1=norm(vCAtoM(vxyz1-vxyzE1)); %finding delta V from Earth orbit to transfer
 delvt2=norm(vCAtoM(vxyz2-vxyzM2));
 fprintf("\nNet transfer orbit deltaV magnitude: %5.4f km/s\n",delvt1+delvt2); %displaying net delta v for heliocentric relative v=0 to planets
 
+% At Earth orbit
+rcircE = 200+6375; % radial height of parking orbit in km/s
+VinfE =norm(vCAtoM(vxyz1-vxyzE1));
+mue = 3.986e5;
+VatPE = sqrt(VinfE^2+2*mue/rcircE);
+VcircE = sqrt(mue/rcircE);
+dV_E = VatPE-VcircE;
+
+% At Mars orbit
+rcircM = 1000+3396.2;
+VinfM = norm(vCAtoM(vxyz2-vxyzM2));
+mum = 0.107*mue;
+VatPM = sqrt(VinfM^2+2*mum/rcircM);
+VcircM = sqrt(mum/rcircM);
+dV_M = VcircM-VatPM;
+
+% Total deltaV
+dV = abs(dV_M)+abs(dV_E);
+fprintf("\nRequired deltaV to be supplied by power plant %5.4f km/s\n",dV)
+
 %% Functions
 % Organized here for ease of editing
 function [rxyz,vxyz] = OEtoXYZ(a,e,i,O,w,th,mu)
-%takes orbital elements and determines heliocentric-ecliptic vectors
+% Convertes orbital parameters to heliocentric vectors
+% Inputs
+%   a - semimajor axis [Au]
+%   e - eccentricity []
+%   i - inclination angle [deg]
+%   O - Longitude of Ascending node [deg]
+%   w - Argument of Periapsis [deg]
+%   th - true anomaly [deg]
+%   mu - gravitional parameter [Au^3/Tu^2] assumed 1
+% Outputs
+%   rxyz - radius vector of orbiter [Au]
+%   vxyz - velocity vector of orbiter [Au/Tu]
+
 p=a*(1-e^2);
 rm=(p)/(1+e*cosd(th));
 rpkw=[rm*cosd(th);rm*sind(th);0]; %perifocal vectors
@@ -92,6 +124,16 @@ vxyz=R*vpkw;
 end
 
 function [r1,v1] = uToF(r0,v0,ToF,mu)
+% Universal Time of Flight calculator propogates r0 and v0 through TOF to
+% r1 v1
+% Inputs
+%   r0 - initial radius vector [Au]
+%   v0 - initial velocity vector [Au/Tu]
+%   TOF - time of flight in Tu
+%   mu - gravitational parameter [Au^3/Tu^2] assumed 1
+% Outputs
+%   r1 - final radius vector [Au]
+%   v1 - final velocity vector [Au/Tu]
 % Universal ToF using z (for all orbit types)
 r0m=norm(r0); %radius magnitude
 v0m=norm(v0); %velocity magnitude
@@ -140,7 +182,13 @@ end
 % end
 
 function [th] = Tanomaly(rxyz,vxyz,mu)
-% takes heliocentric-ecliptic vectors and outputs the true anomaly in deg
+% Calculates the true anomaly of the orbit with these vectors
+% Inputs
+%   rxyz - radius vector [Au]
+%   vxyz - velocity vector [Au/Tu]
+%   mu - gravitational parameter [Au^2/TU^2] assumed 1
+% Outputs
+%   th - True anomaly location [deg]
 rm=norm(rxyz);
 ev=1/mu*((dot(vxyz,vxyz)-mu/rm)*rxyz-(dot(rxyz,vxyz)*vxyz));
 e=norm(ev);
@@ -150,9 +198,18 @@ if dot(rxyz,vxyz)<0
 end
 end
 
-%% Gauss Orbit
-% inputs r0, ToF, mu, r1, zg
 function [v0s,v1s] = Gorb(r0,r1,ToF,mu,zg)
+% Guass's problem orbit calculation
+% Inputs 
+%   r0 - initial radius vector [Au]
+%   ToF - Time of flight [TU] 
+%   mu - gravitational constant [Au^2/Tu^2] assumed 1
+%   r1 - final radius vector [Au] 
+%   zg - initial Guess Use 18 if elliptical, 0 if parabolic, -18 if
+%   hyperbolic
+% Outputs
+%   v0s - shortpath initial velocity vector
+%   v1s - shortpath final velocity vector
 r0m=norm(r0); %initial radius magnitude
 r1m=norm(r1); %final radius magnitude
 Dths=acosd(dot(r0,r1)/(r0m*r1m)); %delta theta (short path), in degrees
