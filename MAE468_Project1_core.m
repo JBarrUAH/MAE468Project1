@@ -62,13 +62,29 @@ fprintf("\nJupiter Data\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %
 tE1=datetime(2022,9,12,13,0,0); %setting departure date, 12 Sep 2022 at 1300hrs UTC was determined to be optimal through manual iteration
 tM2=tE1+days(190); %adding 190 days to find the future Mars position
 
+% Departure
 [rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(tE1),1); %obtaining Earth vectors at departure
 [thE1]=Tanomaly(rxyzE1,vxyzE1,1); %Earth true anomaly
+[rxyzM1,vxyzM1]=uToF(rxyzM0,vxyzM0,ToFfun(tE1),1); %obtaining Mars vectors at arrival
+[thM1]=Tanomaly(rxyzM1,vxyzM1,1); %Mars true anomaly
+% Arrival
+[rxyzE2,vxyzE2]=uToF(rxyzE0,vxyzE0,ToFfun(tM2),1); %obtaining Earth vectors at departure
+[thE2]=Tanomaly(rxyzE2,vxyzE2,1); %Earth true anomaly
 [rxyzM2,vxyzM2]=uToF(rxyzM0,vxyzM0,ToFfun(tM2),1); %obtaining Mars vectors at arrival
 [thM2]=Tanomaly(rxyzM2,vxyzM2,1); %Mars true anomaly
 disp("Soonest ideal launch date: "+char(tE1));
 fprintf("Earth at Departure\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %5.4f %5.4f AU/TU\n\t True anomaly: %5.2f degrees",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3),thE1); %displaying results
 fprintf("\nMars at Arrival\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %5.4f %5.4f AU/TU\n\t True anomaly: %5.2f degrees\n",rxyzM2(1),rxyzM2(2),rxyzM2(3),vxyzM2(1),vxyzM2(2),vxyzM2(3),thM2);
+
+S = [0;0];
+E1 = rxyzE1(1:2);
+M1 = rxyzM1(1:2);
+E2 = rxyzE2(1:2);
+M2 = rxyzM2(1:2);
+Rfactor = [1 .5 .25];
+Rsun = 0.2;
+lbl = ["Sun";"Earth";"Mars"];
+clr = ["y";"g";"r"];
 
 %% Task 3
 % Determine net deltaV assuming departure from 200km Earth circ parking orbit
@@ -78,10 +94,61 @@ delvt1=norm(vCAtoM(vxyz1-vxyzE1)); %finding delta V from Earth orbit to transfer
 delvt2=norm(vCAtoM(vxyz2-vxyzM2));
 fprintf("\nNet transfer orbit deltaV magnitude: %5.4f km/s\n",delvt1+delvt2); %displaying net delta v for heliocentric relative v=0 to planets
 
+% At Earth orbit
+rcircE = 200+6375; % radial height of parking orbit in km/s
+VinfE =norm(vCAtoM(vxyz1-vxyzE1));
+mue = 3.986e5;
+VatPE = sqrt(VinfE^2+2*mue/rcircE);
+VcircE = sqrt(mue/rcircE);
+dV_E = VatPE-VcircE;
+
+% At Mars orbit
+rcircM = 1000+3396.2;
+VinfM = norm(vCAtoM(vxyz2-vxyzM2));
+mum = 0.107*mue;
+VatPM = sqrt(VinfM^2+2*mum/rcircM);
+VcircM = sqrt(mum/rcircM);
+dV_M = VcircM-VatPM;
+
+% Total deltaV
+dV = abs(dV_M)+abs(dV_E);
+fprintf("\nRequired deltaV to be supplied by power plant %5.4f km/s\n",dV)
+
+%% Trajectory plotting
+[e,a,Omega,omega,Inc,theta,h] = OrbitalElements(rxyzE1,vxyz1,1);
+figure
+hold on
+plotBody(Rsun*Rfactor(1),S(1),S(2),lbl(1),clr(1),.1)
+plotBody(Rsun*Rfactor(2),E1(1),E1(2),lbl(2),clr(2),.1)
+plotBody(Rsun*Rfactor(3),M1(1),M1(2),lbl(3),clr(3),.1)
+
+plotBody(Rsun*Rfactor(1),S(1),S(2),lbl(1),clr(1))
+plotBody(Rsun*Rfactor(2),E2(1),E2(2),lbl(2),clr(2))
+plotBody(Rsun*Rfactor(3),M2(1),M2(2),lbl(3),clr(3))
+% Not sure if the theta is correct here
+plotOrbit(a,e,-theta,'b.')
+
+title({"Trajectory Patch Conic";"Lower opacity is initial location and higher opacity is final location"})
+xlabel("x Space dimension [Au]")
+ylabel("y Space dimension [Au]")
+hold off
+
 %% Functions
 % Organized here for ease of editing
 function [rxyz,vxyz] = OEtoXYZ(a,e,i,O,w,th,mu)
-%takes orbital elements and determines heliocentric-ecliptic vectors
+% Convertes orbital parameters to heliocentric vectors
+% Inputs
+%   a - semimajor axis [Au]
+%   e - eccentricity []
+%   i - inclination angle [deg]
+%   O - Longitude of Ascending node [deg]
+%   w - Argument of Periapsis [deg]
+%   th - true anomaly [deg]
+%   mu - gravitional parameter [Au^3/Tu^2] assumed 1
+% Outputs
+%   rxyz - radius vector of orbiter [Au]
+%   vxyz - velocity vector of orbiter [Au/Tu]
+
 p=a*(1-e^2);
 rm=(p)/(1+e*cosd(th));
 rpkw=[rm*cosd(th);rm*sind(th);0]; %perifocal vectors
@@ -92,6 +159,16 @@ vxyz=R*vpkw;
 end
 
 function [r1,v1] = uToF(r0,v0,ToF,mu)
+% Universal Time of Flight calculator propogates r0 and v0 through TOF to
+% r1 v1
+% Inputs
+%   r0 - initial radius vector [Au]
+%   v0 - initial velocity vector [Au/Tu]
+%   TOF - time of flight in Tu
+%   mu - gravitational parameter [Au^3/Tu^2] assumed 1
+% Outputs
+%   r1 - final radius vector [Au]
+%   v1 - final velocity vector [Au/Tu]
 % Universal ToF using z (for all orbit types)
 r0m=norm(r0); %radius magnitude
 v0m=norm(v0); %velocity magnitude
@@ -140,7 +217,13 @@ end
 % end
 
 function [th] = Tanomaly(rxyz,vxyz,mu)
-% takes heliocentric-ecliptic vectors and outputs the true anomaly in deg
+% Calculates the true anomaly of the orbit with these vectors
+% Inputs
+%   rxyz - radius vector [Au]
+%   vxyz - velocity vector [Au/Tu]
+%   mu - gravitational parameter [Au^2/TU^2] assumed 1
+% Outputs
+%   th - True anomaly location [deg]
 rm=norm(rxyz);
 ev=1/mu*((dot(vxyz,vxyz)-mu/rm)*rxyz-(dot(rxyz,vxyz)*vxyz));
 e=norm(ev);
@@ -150,9 +233,18 @@ if dot(rxyz,vxyz)<0
 end
 end
 
-%% Gauss Orbit
-% inputs r0, ToF, mu, r1, zg
 function [v0s,v1s] = Gorb(r0,r1,ToF,mu,zg)
+% Guass's problem orbit calculation
+% Inputs 
+%   r0 - initial radius vector [Au]
+%   ToF - Time of flight [TU] 
+%   mu - gravitational constant [Au^2/Tu^2] assumed 1
+%   r1 - final radius vector [Au] 
+%   zg - initial Guess Use 18 if elliptical, 0 if parabolic, -18 if
+%   hyperbolic
+% Outputs
+%   v0s - shortpath initial velocity vector
+%   v1s - shortpath final velocity vector
 r0m=norm(r0); %initial radius magnitude
 r1m=norm(r1); %final radius magnitude
 Dths=acosd(dot(r0,r1)/(r0m*r1m)); %delta theta (short path), in degrees
@@ -190,4 +282,159 @@ dfs=(-sqrt(mu)*xs/(r0m*r1m))*(1-zs*S(zs));
 dgs=1-xs^2/r1m*C(zs);
 v0s=(r1-fs*r0)/gs; %outputting short path initial and final velocity vectors
 v1s=(dgs*r1-r0)/gs;
+end
+
+function plotBody(R,xdiff,ydiff,lbl,clr,alf,SOI)
+% Plots a celestial body at location xdiff ydiff with pseudo radius R [Au]
+% with label  and optional Sphere of influence
+% Input
+%   R - psuedo radius (aparant radius) [Au]
+%   xdiff - shifted x location [Au]
+%   ydiff - shifted y location [Au]
+%   clr - color of body [string]
+%   SOI - sphere of influence
+%   alf - alpha of plot (float)
+% Output
+%   plot
+
+SunR = R;
+xsun = linspace(-SunR,SunR,100);
+ysunp = sqrt(SunR^2-xsun.^2);
+ysunn = -ysunp;
+xsun = [xsun fliplr(xsun)]+xdiff;
+ysun = [ysunp fliplr(ysunn)]+ydiff;
+
+if or(xdiff~=0,ydiff~=0)
+    R = sqrt(xdiff^2+ydiff^2);
+    x = linspace(-R,R,100);
+    yp = sqrt(R^2-x.^2);
+    yn = -sqrt(R^2-x.^2);
+    x = [x fliplr(x)];
+    y = [yp fliplr(yn)];
+else
+    x = 0;
+    y = 0;
+end
+
+if nargin==7 
+    t = linspace(0,2*pi,100);
+    r = ones(size(t))*SOI;
+    [xSOI,ySOI] = pol2cart(t,r);
+     xSOI = xSOI+xdiff;
+     ySOI = ySOI+ydiff;
+    plot(xSOI,ySOI,'b.')
+else
+    xSOI=xdiff;
+    ySOI = ydiff;
+end
+a = plot(xsun,ysun,clr,x,y,'k',xSOI,ySOI,'b.');
+if exist('alf')
+    fill(xsun,ysun,clr,'FaceAlpha',alf);
+    a(1).Color(4) = alf;
+else
+    fill(xsun,ysun,clr,'FaceAlpha',1);
+    a(1).Color(4) = 1;
+end
+text(mean(xsun),mean(ysun),lbl)
+axis('equal')
+end
+
+function [e,a,Omega,omega,Inc,theta,h] = OrbitalElements(r,v,mue)
+% Calculates the Orbital elements of a given orbit with r,v
+% Requires:
+%   r - distance column vector of the spacecraft
+%   v - velocity column vector of the spacecraft
+% Returns:
+%   e - ecentricity 
+%   a - semi-major axis
+%   Omega - Longitude of ascending node [degrees];
+%   omega - argument of periapsis [degrees];
+%   Inc - inclination [degrees]
+%   theta - true anaomaly [degrees]
+%   h - angular momentum
+
+K = [0;0;1];
+J = [0;1;0];
+I = [1;0;0];
+
+h = cross(r,v);
+n = cross(K,h);
+e =1/mue*((norm(v)^2-mue/norm(r))*r-(dot(r,v))*v);
+
+a = (norm(h)^2/mue)/(1-norm(e)^2);
+
+i = acosd(dot(K,h)/norm(h));
+
+if dot(n,J)>0
+    Omega = acosd(dot(I,n)/norm(n));
+else
+    Omega = 360 - acosd(dot(I,n)/norm(n));
+end
+
+if dot(e,K)>0
+    omega = acosd(dot(n,e)/(norm(n)*norm(e)));
+else
+    omega = 360 - acosd(dot(n,e)/(norm(n)*norm(e)));
+end
+
+if dot(r,v)>0
+    theta = acosd(dot(e,r)/(norm(e)*norm(r)));
+else
+    theta = 360 -acosd(dot(e,r)/(norm(e)*norm(r)));
+end
+
+e = norm(e);
+h = norm(h);
+Inc = i;
+% info about orbit
+if i>90
+    grad = "retrograde";
+elseif i==90
+    grad = "polar";
+else
+    grad = "prograde";
+end
+
+if e==0
+    typ = "circular";
+elseif e<1;
+    typ = "elliptical";
+elseif e==1;
+    typ = "parabolic";
+else
+    typ = "hyperbolic";
+
+if isnan(Omega)
+    k = "equatorial";
+else
+    k = "";
+end
+
+fprintf(" Orbit is "+k+" "+grad+" and is "+typ+"\n")
+end
+end
+
+function plotOrbit(a,e,theta,clr)
+    if nargin<4
+        clr = 'k';
+    end
+    if nargin<3
+        theta = 0;
+    end
+    
+    R = [cosd(theta) -sind(theta);
+        sind(theta) cosd(theta)];
+    t = linspace(0,2*pi,100);
+    p = a.*(1-e.^2);
+    r = p./(1+e*cos(t));
+    [x1,y1] = pol2cart(t,r);
+    x =[];
+    y = [];
+    for i = 1:length(x1)
+        X = R*[x1(i);y1(i)];
+        x(i) = X(1);
+        y(i) = X(2);
+    end
+    plot(x,y,clr)
+    axis('equal')
 end
