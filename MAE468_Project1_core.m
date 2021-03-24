@@ -2,11 +2,11 @@
 % The team consists of Joseph Barragree, Sarah Polickoski, Micajah
 % Schweikert, and Stephen Ward.
 
-% This code requires ___ to run. (put.m file names here if others are needed)
 %% Notes
 % This section is for leaving note comments
 
 %source used for some constants: http://www.dept.aoe.vt.edu/~lutze/AOE2104/consts.pdf
+%source for Mars and Earth patch-conic https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
 
 %% Housekeeping
 % Run to remove figures, workspace variables and command window content
@@ -74,10 +74,11 @@ fprintf("\nMars at Arrival\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4
 % Determine net deltaV assuming departure from 200km Earth circ parking orbit
 % and arrival at 1000 km Mars circ park orb
 [vxyz1,vxyz2]=Gorb(rxyzE1,rxyzM2,ToFfun(t0+days(190)),1,zg); %spacecraft heliocentric departure and arrival velocities
-delvt1=vCAtoM(vxyz1-vxyzE1); %finding delta V from Earth Vrel=0 to transfer orbit in km/s
-delvt2=vCAtoM(vxyz2-vxyzM2); %finding delta V from transfer orbit to Mars Vrel=0 in km/s
-
-% fprintf("\nNet transfer orbit deltaV magnitude: %5.4f km/s\n",delvt1+delvt2); %displaying net delta v for heliocentric relative v=0 to planets
+vinf1=vCAtoM(norm(vxyz1-vxyzE1)); %finding vinf at Earth in km/s
+vinf2=vCAtoM(norm(vxyz2-vxyzM2)); %finding vinf at Mars in km/s
+dvE=sqrt(2*(vinf1^2/2+3.986e5/6578.1))-sqrt(3.986e5/6578.1); %finding dv at Earth orbit
+dvM=sqrt(4.2828e4/4396.2)-sqrt(2*(vinf2^2/2+4.2828e4/4396.2));%finding dv at Mars orbit
+fprintf("\nNet mission dv: %5.4f km/s\n",abs(dvE)+abs(dvM)); %displaying net delta v for entire mission
 
 %% Functions
 % Organized here for ease of editing
@@ -180,7 +181,6 @@ end
 %processing results
 fs=1-xs^2/r0m*C(zs);
 gs=ts-xs^3/sqrt(mu)*S(zs);
-dfs=(-sqrt(mu)*xs/(r0m*r1m))*(1-zs*S(zs));
 dgs=1-xs^2/r1m*C(zs);
 v0s=(r1-fs*r0)/gs; %outputting short path initial and final velocity vectors
 v1s=(dgs*r1-r0)/gs;
