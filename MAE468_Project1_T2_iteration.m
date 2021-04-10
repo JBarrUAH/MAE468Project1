@@ -28,9 +28,9 @@ vCAtoM=@(v) v*149597870.7/5022604.8; %km/s (AU/TU sun to km/s)
 [rxyzJ0,vxyzJ0]=OEtoXYZ(oeJ(1),oeJ(2),oeJ(3),oeJ(4),oeJ(5),oeJ(6),1);
 
 %% Iterating to find optimal date and time
-for it=0:1:24
+for it=0:1:12
 %Departure time is 1700 EST (2200 UTC), which seems reasonable based on past launches.
-tE1=datetime(2022,9,17,0,0,0)+hours(it); %setting departure date
+tE1=datetime(2022,9,17,6,0,0)+hours(it); %setting departure date
 tM2=tE1+days(190); %adding 190 days to find the future Mars position
 [rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(tE1),1); %obtaining Earth vectors at departure
 [rxyzM2,vxyzM2]=uToF(rxyzM0,vxyzM0,ToFfun(tM2),1); %obtaining Mars vectors at arrival
