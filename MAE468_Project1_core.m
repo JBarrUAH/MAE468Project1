@@ -133,11 +133,11 @@ function [rxyz,vxyz] = OEtoXYZ(a,e,i,O,w,th,mu)
 
 p=a*(1-e^2);
 rm=(p)/(1+e*cosd(th));
-rpkw=[rm*cosd(th);rm*sind(th);0]; %perifocal vectors
-vpkw=sqrt(mu/p)*[-sind(th);e+cosd(th);0];
+rpqw=[rm*cosd(th);rm*sind(th);0]; %perifocal vectors
+vpqw=sqrt(mu/p)*[-sind(th);e+cosd(th);0];
 R=[cosd(O)*cosd(w)-sind(O)*sind(w)*cosd(i),-cosd(O)*sind(w)-sind(O)*cosd(w)*cosd(i),sind(O)*sind(i);sind(O)*cosd(w)+cosd(O)*sind(w)*cosd(i),-sind(O)*sind(w)+cosd(O)*cosd(w)*cosd(i),-cosd(O)*cosd(i);sind(w)*sind(i),cosd(w)*sind(i),cosd(i)];
-rxyz=R*rpkw; %heliocentric-ecliptic vectors
-vxyz=R*vpkw;
+rxyz=R*rpqw; %heliocentric-ecliptic vectors
+vxyz=R*vpqw;
 end
 
 function [r1,v1] = uToF(r0,v0,ToF,mu)
