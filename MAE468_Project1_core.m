@@ -3,8 +3,6 @@
 % Schweikert, and Stephen Ward.
 
 %% Notes
-% This section is for leaving note comments
-
 %source used for some constants: http://www.dept.aoe.vt.edu/~lutze/AOE2104/consts.pdf
 %source for Mars and Earth patch-conic https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
 
@@ -25,12 +23,12 @@ oeM=[1.523662,0.093412,1.85061,49.57854,286.4623,19.41248]; %Mars
 oeJ=[5.203363,0.048393,1.3053,100.55615,-85.8023,19.55053]; %Jupiter
 % a,e,i,O,w,th is naming convention used in functions
 t0=datetime(2000,1,1,11,58,0); %setting initial time to the J2000 parameter
-ToFfun=@(tt) etime(datevec(tt),datevec(t0))/5.0226757e6; %anonymous function for finding ToF in AU, might use actual function
+ToFfun=@(tt) etime(datevec(tt),datevec(t0))/5.0226757e6; %anonymous function for finding ToF in AU
 
 zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(2pi)^2 
 % NOTE: Use 18 if elliptical, 0 if parabolic, -18 if hyperbolic
 
-vCAtoM=@(v) v*149597870.7/5022604.8; %km/s (AU/TU sun to km/s)
+vCAtoM=@(v) v*149597870.7/5.0226757e6; %km/s (AU/TU sun to km/s)
 
 %% Orbital Elements to Initial Vectors
 % Finds perifocal vectors from orbital elements, then converts to
@@ -42,6 +40,7 @@ vCAtoM=@(v) v*149597870.7/5022604.8; %km/s (AU/TU sun to km/s)
 %% Task 1
 % Obtains rxyz and vxyz vectors for the planets on Dec 25, 2025 at 0837 UTC
 % as well as the true anomalies
+fprintf("\n---TASK 1---\n");
 t1=datetime(2025,12,25,08,37,00); %specified time as datetime vector
 [rxyzE01,vxyzE01]=uToF(rxyzE0,vxyzE0,ToFfun(t1),1); %obtaining final vectors for Earth
 [~,~,~,~,~,thE01]=XYZtoOE(rxyzE01,vxyzE01,1); %Earth true anomaly
@@ -56,9 +55,9 @@ fprintf("\nJupiter Data\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %
 %% Task 2
 % Obtains positions of Earth and Mars with a 190 day interval, then
 % calculates the required V0 of the spacecraft from Earth's R0 to make
-% the 190 day shortway transfer. Arbitrarily set the Earth date, needs to be between
-% 2021 and 2030.
-
+% the 190 day shortway transfer. Arbitrarily set the Earth date, needs
+% to be between 2021 and 2030.
+fprintf("\n---TASK 2---\n");
 tE1=datetime(2022,9,17,15,0,0); %setting departure date, 17 Sep 2022 at 1500hrs UTC was determined to be optimal through manual iteration
 tM2=tE1+days(190); %adding 190 days to find the future Mars position
 
@@ -89,6 +88,7 @@ clr = ["y";"g";"r"];
 %% Task 3
 % Determine net deltaV assuming departure from 200km Earth circ parking orbit
 % and arrival at 1000 km Mars circular parking orbit
+fprintf("\n---TASK 3---");
 [vxyz1,vxyz2]=Gorb(rxyzE1,rxyzM2,ToFfun(t0+days(190)),1,zg); %spacecraft heliocentric departure and arrival velocities
 vinf1=vCAtoM(norm(vxyz1-vxyzE1)); %finding vinf at Earth in km/s
 vinf2=vCAtoM(norm(vxyz2-vxyzM2)); %finding vinf at Mars in km/s
@@ -107,7 +107,7 @@ plotBody(Rsun*Rfactor(3),M1(1),M1(2),lbl(3),clr(3),.1)
 plotBody(Rsun*Rfactor(1),S(1),S(2),lbl(1),clr(1))
 plotBody(Rsun*Rfactor(2),E2(1),E2(2),lbl(2),clr(2))
 plotBody(Rsun*Rfactor(3),M2(1),M2(2),lbl(3),clr(3))
-% Not sure if the theta is correct here
+
 plotOrbit(a,e,-th,'b.')
 
 title(["Trajectory Patch Conic";"Lower opacity is initial location and higher opacity is final location"])

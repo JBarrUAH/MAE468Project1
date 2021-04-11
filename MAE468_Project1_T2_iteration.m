@@ -18,7 +18,7 @@ t0=datetime(2000,1,1,11,58,0); %setting initial time to the J2000 parameter
 ToFfun=@(tt) etime(datevec(tt),datevec(t0))/5.0226757e6; %anonymous function for finding ToF in AU, might use actual function
 zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(2pi)^2 
 % NOTE: Use 18 if elliptical, 0 if parabolic, -18 if hyperbolic
-vCAtoM=@(v) v*149597870.7/5022604.8; %km/s (AU/TU sun to km/s)
+vCAtoM=@(v) v*149597870.7/5.0226757e6; %km/s (AU/TU sun to km/s)
 
 %% Orbital Elements to Initial Vectors
 % Finds perifocal vectors from orbital elements, then converts to
