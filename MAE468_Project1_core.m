@@ -57,7 +57,7 @@ fprintf("\nJupiter Data\n\t Position: %5.4f %5.4f %5.4f AU\n\t Velocity: %5.4f %
 % calculates the required V0 of the spacecraft from Earth's R0 to make
 % the 190 day shortway transfer. Arbitrarily set the Earth date, needs
 % to be between 2021 and 2030.
-fprintf("\n---TASK 2---\n");
+fprintf("---TASK 2---\n");
 tE1=datetime(2022,9,17,15,0,0); %setting departure date, 17 Sep 2022 at 1500hrs UTC was determined to be optimal through manual iteration
 tM2=tE1+days(190); %adding 190 days to find the future Mars position
 
