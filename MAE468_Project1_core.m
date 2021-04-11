@@ -40,7 +40,7 @@ vCAtoM=@(v) v*149597870.7/5.0226757e6; %km/s (AU/TU sun to km/s)
 %% Task 1
 % Obtains rxyz and vxyz vectors for the planets on Dec 25, 2025 at 0837 UTC
 % as well as the true anomalies
-fprintf("\n---TASK 1---\n");
+fprintf("---TASK 1---\n");
 t1=datetime(2025,12,25,08,37,00); %specified time as datetime vector
 [rxyzE01,vxyzE01]=uToF(rxyzE0,vxyzE0,ToFfun(t1),1); %obtaining final vectors for Earth
 [~,~,~,~,~,thE01]=XYZtoOE(rxyzE01,vxyzE01,1); %Earth true anomaly
