@@ -1,8 +1,10 @@
 % This is the core code file for the MAE468 Project 2 submission
 % The team consists of Joseph Barragree, Sarah Polickoski, Micajah
 % Schweikert, and Stephen Ward.
+
 %% Notes
-% Notes go here
+%source used for some constants: http://www.dept.aoe.vt.edu/~lutze/AOE2104/consts.pdf
+%source for Mars and Earth patch-conic https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
 
 %% Housekeeping
 % Run to remove figures, workspace variables and command window content
@@ -11,14 +13,13 @@ close all
 clear
 clc
 
-%% Variable Initialization
-% Initial setup. Includes orbital elements, locations, constants, etc
+%% Orbital Variable Initialization
+% Includes orbital elements, locations, constants, anonymous functions, etc
 
 mu=1; %canonical mu, AU^3/TU^2 heliocentric or DU^3/TU^2 geocentric
 % a,e,i,OMEGA,omega,theta (AU,unitless,deg,deg,deg,deg)
 oeE=[1.000000,0.01671,0.00005,-11.26064,114.20783,-2.48284]; %Earth
 oeM=[1.523662,0.093412,1.85061,49.57854,286.4623,19.41248]; %Mars
-oeJ=[5.203363,0.048393,1.3053,100.55615,-85.8023,19.55053]; %Jupiter
 % a,e,i,O,w,th is naming convention used in functions
 t0=datetime(2000,1,1,11,58,0); %setting initial time to the J2000 parameter
 ToFfun=@(tt) etime(datevec(tt),datevec(t0))/5.0226757e6; %anonymous function for finding ToF in AU
@@ -33,33 +34,23 @@ vCAtoM=@(v) v*149597870.7/5.0226757e6; %km/s (AU/TU sun to km/s)
 % vectors in heliocentric frame. Setup work for other tasks.
 [rxyzE0,vxyzE0]=OEtoXYZ(oeE(1),oeE(2),oeE(3),oeE(4),oeE(5),oeE(6),1);
 [rxyzM0,vxyzM0]=OEtoXYZ(oeM(1),oeM(2),oeM(3),oeM(4),oeM(5),oeM(6),1);
-[rxyzJ0,vxyzJ0]=OEtoXYZ(oeJ(1),oeJ(2),oeJ(3),oeJ(4),oeJ(5),oeJ(6),1);
 %% Tasks a and b
-% Obtains positions and velocities of Earth and Mars with a 190 day interval
-% The orbital element code for this section can likely be deleted, but I've kept it for now.
+% Obtains positions and velocities of Earth and Mars with a 190 day
+% interval launching on 17 Sep 2022
 fprintf("---TASK a---\n");
 tE1=datetime(2022,9,17,15,0,0); %setting departure date, 17 Sep 2022 at 1500hrs UTC was determined to be optimal through manual iteration
 tM2=tE1+days(190); %adding 190 days to find the future Mars position
 disp("Earth launch date: "+char(tE1));
 disp("Mars arrival date: "+char(tM2));
 
-% Departure
-[rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(tE1),1); %obtaining Earth vectors at departure
-[oeE1(1),oeE1(2),oeE1(3),oeE1(4),oeE1(5),oeE1(6)]=XYZtoOE(rxyzE1,vxyzE1,1); %Earth orbital elements
-[rxyzM1,vxyzM1]=uToF(rxyzM0,vxyzM0,ToFfun(tE1),1); %obtaining Mars vectors at departure
-[oeM1(1),oeM1(2),oeM1(3),oeM1(4),oeM1(5),oeM1(6)]=XYZtoOE(rxyzM1,vxyzM1,1); %Mars orbital elements
-% Arrival
-[rxyzE2,vxyzE2]=uToF(rxyzE0,vxyzE0,ToFfun(tM2),1); %obtaining Earth vectors at arrival
-[oeE2(1),oeE2(2),oeE2(3),oeE2(4),oeE2(5),oeE2(6)]=XYZtoOE(rxyzE2,vxyzE2,1); %Earth orbital elements
-[rxyzM2,vxyzM2]=uToF(rxyzM0,vxyzM0,ToFfun(tM2),1); %obtaining Mars vectors at arrival
-[oeM2(1),oeM2(2),oeM2(3),oeM2(4),oeM2(5),oeM2(6)]=XYZtoOE(rxyzM2,vxyzM2,1); %Mars orbital elements
 fprintf("\n---TASK b---\n");
-fprintf("Earth at Departure\n\t Position: %5.4f, %5.4f, %5.4f AU\n\t Velocity: %5.4f, %5.4f, %5.4f AU/TU",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3)); %displaying results
+[rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(tE1),1); %obtaining Earth vectors at departure
+[rxyzM2,vxyzM2]=uToF(rxyzM0,vxyzM0,ToFfun(tM2),1); %obtaining Mars vectors at arrival
+fprintf("Earth at Departure\n\t Position: %5.4f, %5.4f, %5.4f AU\n\t Velocity: %5.4f, %5.4f, %5.4f AU/TU",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3));
 fprintf("\nMars at Arrival\n\t Position: %5.4f, %5.4f, %5.4f AU\n\t Velocity: %5.4f, %5.4f, %5.4f AU/TU\n",rxyzM2(1),rxyzM2(2),rxyzM2(3),vxyzM2(1),vxyzM2(2),vxyzM2(3));
 
 %% Task c
-% Determine net deltaV assuming departure from 200km Earth circ parking orbit
-% and arrival at 1000 km Mars circular parking orbit
+% Spacecraft interplanetary transfer parameters
 fprintf("\n---TASK c---\n");
 [vxyz1,vxyz2]=Gorb(rxyzE1,rxyzM2,ToFfun(t0+days(190)),1,zg); %spacecraft heliocentric departure and arrival velocities
 [oeSC1(1),oeSC1(2),oeSC1(3),oeSC1(4),oeSC1(5),oeSC1(6)]=XYZtoOE(rxyzE1,vxyz1,1); %Spacecraft departure orbital elements
@@ -82,6 +73,9 @@ fprintf("Mars vinf to parking orbit dv: %5.4f km/s\n",abs(dvM)); %displaying del
 %% Task e
 % Size systems and determine costs
 fprintf("\n---TASK e---\n");
+CasIns=[11.83,14.46,32;55.9,57.8,365;3.1,3,3.6;27.7,9.25,1.5]; %Cassini Instrument parameters [W,kg,max kb/s]
+
+
 
 %% Functions
 % Organized here for ease of editing
