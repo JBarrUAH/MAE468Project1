@@ -74,8 +74,15 @@ fprintf("Mars vinf to parking orbit dv: %5.4f km/s\n",abs(dvM)); %displaying del
 % Size systems and determine costs
 fprintf("\n---TASK e---\n");
 CasIns=[11.83,14.46,32;55.9,57.8,365;3.1,3,3.6;27.7,9.25,1.5]; %Cassini Instrument parameters [W,kg,max kb/s]
+DSN=[70,0.7,21]; %DSN [diameter,efficiency,noise temperature]
+%comm=[13.8e9,100e6]; %communications [frequency, bandwidth] in Hz
+comm=[8.425e9,38.89e3];
+Mdist=[54.6e9,0];
+%Mdist=[401e9,0]; %Mars distance information [max dist from earth m, XXXX]
+xmitt=[0.28,0.55,0,0]; %initializing transmitter information. [diameter m, efficiency,mass kg,power W]
 
-
+xmitt(3)=2.89*xmitt(1)^2+6.11*xmitt(1)-2.59; %calculating mass of transmitter in kg
+xmitt(4)=10^((14.6-Gain(xmitt(1),comm(1),xmitt(2))-Gain(DSN(1),comm(1),DSN(2))+Tloss(Mdist(1),comm(1))+10*log10(comm(2))-228.6+10*log10(DSN(3)))/10); %transmitter power in W
 
 %% Functions
 % Organized here for ease of editing
@@ -229,5 +236,18 @@ gs=ts-xs^3/sqrt(mu)*S(zs);
 dgs=1-xs^2/r1m*C(zs);
 v0s=(r1-fs*r0)/gs; %outputting short path initial and final velocity vectors
 v1s=(dgs*r1-r0)/gs;
+end
+
+function [G] = Gain(D,f,n)
+% Computes antenna gain in dB
+% inputs are D=diameter, f=frequency, n=efficiency
+G=-159.6+10*log10(n)+20*log10(D)+20*log10(f); %gain [dB]
+end
+
+function [Lt] = Tloss(x,f)
+% Computes total loss in dB
+% inputs are x=distance [km], f=frequency [Hz]
+Lp=-147.6+20*log10(x)+20*log10(f); %path loss [dB]
+Lt=Lp+1; %adding 1dB for other losses
 end
 
