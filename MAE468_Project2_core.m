@@ -94,7 +94,7 @@ fprintf("Transmitter parameters\n\t Diameter: %3.1f m\n\t Efficiency: %3.2f\n\t 
 % Find battery size accounting for degradation and around 6000 power cycles life
 
 [TlM,TnM]=Ltime(Mdist(2),alt,muM,0); %assuming th0=0 for most conservative estimate [time in light,time in night] in seconds
-Pln=[sum(CasIns(:,1))+xmitt(4),sum(CasIns(:,1))]; %payload power summation [power in light,power in night] both in W
+Pln=[sum(CasIns(:,1))+xmitt(4),sum(CasIns(:,1))]; %worst case payload power summation [power in light,power in night] both in W
 Pln=Pln+1.3*((332.93*log(max(Pln))-1046.6)-max(Pln)); %total orbiter power consumption [power in light,power in night] both in W
 
 Xln=[.8,.6]; %peak power transfer efficiencies light and night
@@ -102,19 +102,27 @@ PsaM=((Pln(1)*TlM)/Xln(1)+(Pln(2)*TnM)/Xln(2))/TlM; %solar array required power
 PeolM=301*(149.596e6/Mdist(3))^2*0.77*cosd(0)*(1-0.005)^17; %end of life unit area power [W/m^2] for multijunction over 17 years
 SolarArray=[PsaM/PeolM,0,0]; %initializing solar array information [array area m,array mass kg, battery mass kg]
 SolarArray(2)=SolarArray(1)*4.0; %solar array mass in kg based on required area and rigid fold-out panels
-SolarArray(3)=((Pln(2)*TnM)/(0.45*.97))/(55*60*60); %determining required battery mass based on night power consumption, 45%DoD, 97% transfer efficiency, and SED of 55W-hr/kg
+SolarArray(3)=((Pln(2)*TnM)/(0.40*.97))/(55*60*60); %determining required battery mass based on night power consumption, 40%DoD, 97% transfer efficiency, and SED of 55W-hr/kg
 fprintf("Power System Parameters\n\t Panel area: %4.2f m\n\t Array mass: %4.2f kg\n\t Battery mass: %4.2f kg\n",SolarArray(1),SolarArray(2),SolarArray(3));
 
 %% Thermal system sizing
 % Size thermal system based off of solar panels, arbitrary reasonable spacecraft size,
 % and Mars circular orbit. Figure out radiator size if needed and heater
 % power consumption. Note, transmitter will only run during the day
-
+sfb=5.670374e-8; %stefan-boltzmann constant W/(m^2*K^4)
 qMir=[162,120]*Mdist(2)^2/(Mdist(2)+alt)^2; %Mars max and min IR for parking orbit
 GsM=1367*(149.596e6/Mdist(3))^2; %Solar at Mars based off of reference distances
+Qwaste=[(sum(CasIns(:,1))+xmitt(4))/2+80,80]; %electronics waste heat [max,min] both in W
 albM=0.29; %Mars albedo
+Tlim=[30,10]+273; %spacecraft temperature limits [max,min] both in K <see paper for assumptions>
+SCdim=[2,0,0]; %initializing spacecraft dimensions [radius m,area in m^2,area out m^2]
+SCdim=[SCdim(1),pi()*SCdim(1)^2,4*pi()*SCdim(1)^2]; %calculating the areas
+ae=[0.30,0.03,0.8,0.8]; %initializing surface finishes [SC abs,SC emis,solar panel abs,radiator emis]
 
-
+Qsolalb=(1+albM)*GsM*(ae(1)*SCdim(2)+ae(3)*SolarArray(1)); %total solar Qin including albedo and solar panels
+Qir=qMir*(SCdim(2)+SolarArray(1)); %planet IR Qin both max and min cases
+Temps=[((Qsolalb+max(Qir)+max(Qwaste))/(SCdim(3)*ae(2)*sfb))^(1/4),((min(Qir)+min(Qwaste))/(SCdim(3)*ae(2)*sfb))^(1/4)]; %SC temperatures without radiator [max,min] both in K
+disp(Temps-273);
 %% ADCS Sizing
 % Determine overall mass for craft based on all other components. Figure
 % out approximate mass moments of inertia based on spherical (and homogeneous) craft, and
