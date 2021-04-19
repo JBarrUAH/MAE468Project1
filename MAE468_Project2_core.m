@@ -70,19 +70,53 @@ dvM=sqrt(4.2828e4/3796.2)-sqrt(2*(vinf2^2/2+4.2828e4/3796.2));%finding dv for Ma
 fprintf("\n-OUTDATED- Earth parking orbit to vinf dv: %5.4f km/s\n",abs(dvE)); %displaying delta v
 fprintf("Mars vinf to parking orbit dv: %5.4f km/s\n",abs(dvM)); %displaying delta v to get Mars parking orbit
 
-%% Task e
-% Size systems and determine costs
+%% Transmitter sizing
+% Size transmitter based on longest distance, data transfer with 2kbps
+% additional engineering downlink, 10^-6 BER conv coding (Eb/N0=4.7), 10dB
+% margin, efficiency based off of HW9 MGS
 fprintf("\n---TASK e---\n");
 CasIns=[11.83,14.46,32;55.9,57.8,365;3.1,3,3.6;27.7,9.25,1.5]; %Cassini Instrument parameters [W,kg,max kb/s]
 DSN=[70,0.7,21]; %DSN [diameter,efficiency,noise temperature]
-%comm=[13.8e9,100e6]; %communications [frequency, bandwidth] in Hz
-comm=[8.425e9,38.89e3];
-Mdist=[54.6e9,0];
-%Mdist=[401e9,0]; %Mars distance information [max dist from earth m, XXXX]
-xmitt=[0.28,0.55,0,0]; %initializing transmitter information. [diameter m, efficiency,mass kg,power W]
+comm=[13.8e9,100e6]; %communications [frequency, bandwidth] in Hz
+Mdist=[401e9,0]; %Mars distance information [max dist from earth m, XXXX]
+xmitt=[2.5,0.55,0,0]; %initializing transmitter information. [diameter m, efficiency,mass kg,power W]
 
 xmitt(3)=2.89*xmitt(1)^2+6.11*xmitt(1)-2.59; %calculating mass of transmitter in kg
-xmitt(4)=10^((14.6-Gain(xmitt(1),comm(1),xmitt(2))-Gain(DSN(1),comm(1),DSN(2))+Tloss(Mdist(1),comm(1))+10*log10(comm(2))-228.6+10*log10(DSN(3)))/10); %transmitter power in W
+xmitt(4)=10^((14.7-Gain(xmitt(1),comm(1),xmitt(2))-Gain(DSN(1),comm(1),DSN(2))+Tloss(Mdist(1),comm(1))+10*log10(1e3*sum(CasIns(:,3))+2000)-228.6+10*log10(DSN(3)))/10); %transmitter power in W
+
+%% Power system sizing
+% Use calculated transmitter power consumption with Cassini instrument
+% consumption and provided waste hear converted to consumption to determine
+% solar panel sizing (assume Mars circular orbit for now). Also account for system degradation.
+% Find battery size accounting for degradation and power cycles - not accounting for thermal yet
+
+
+%% Thermal system sizing
+% Size thermal system based off of solar panels, arbitrary reasonable spacecraft size,
+% and Mars circular orbit. Figure out radiator size if needed and heater
+% power consumption. 
+
+qMir=[162,120]*3389.5^2/(3389.5+400)^2; %Mars max and min IR for 400km circular orbit
+GsM=1367*(149.5/227.8)^2; %Solar at Mars
+albM=0.29; %Mars albedo
+
+
+%% ADCS Sizing
+% Determine overall mass for craft based on all other components. Figure
+% out approximate mass moments of inertia based on spherical (and homogeneous) craft, and
+% deployed solar panels (using their mass). Determine disturbances and size
+% reaction wheels for a reasonable number of orbits, then size thrusters.
+% Figure out propellant mass for mission life with thrusters, then add
+% margin and recalculate reaction wheels and fuel consumption to check.
+
+
+%% Propulsion sizing
+% Select engine parameters for an efficient but powerful enough chemical
+% engine for Mars arrival burn, based on the orbiter (payload) size,
+% determine inert mass and fuel required. (We assume it detaches from
+% orbiter so ADCS doesn't have to worry about it)
+
+
 
 %% Functions
 % Organized here for ease of editing
