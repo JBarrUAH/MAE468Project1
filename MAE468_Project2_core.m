@@ -80,7 +80,7 @@ fprintf("\n---TASK e---\n");
 CasIns=[11.83,14.46,32;55.9,57.8,365;3.1,3,3.6;27.7,9.25,1.5]; %Cassini Instrument parameters [W,kg,max kb/s]
 DSN=[70,0.7,21]; %DSN [diameter,efficiency,noise temperature]
 comm=[13.8e9,100e6]; %communications [frequency, bandwidth] in Hz
-Mdist=[401e9,3389.5,227.923e6]; %Mars distance information [max dist from earth m, planet radius m, average orbit distance km]
+Mdist=[401e9,3389.5,227.923e6]; %Mars distance information [max dist from Earth m, planet radius m, average orbit distance km]
 xmitt=[2.5,0.55,0,0]; %initializing transmitter information. [diameter m, efficiency,mass kg,power W]
 
 xmitt(3)=2.89*xmitt(1)^2+6.11*xmitt(1)-2.59; %calculating mass of transmitter in kg
@@ -94,7 +94,7 @@ fprintf("Transmitter parameters\n\t Diameter: %3.1f m\n\t Efficiency: %3.2f\n\t 
 % Find battery size accounting for degradation and around 6000 power cycles life
 
 [TlM,TnM]=Ltime(Mdist(2),alt,muM,0); %assuming th0=0 for most conservative estimate [time in light,time in night] in seconds
-Pln=[sum(CasIns(:,1))+xmitt(4),sum(CasIns(:,1))]; %payload summation [power in light,power in night] both in W
+Pln=[sum(CasIns(:,1))+xmitt(4),sum(CasIns(:,1))]; %payload power summation [power in light,power in night] both in W
 Pln=Pln+1.3*((332.93*log(max(Pln))-1046.6)-max(Pln)); %total orbiter power consumption [power in light,power in night] both in W
 
 Xln=[.8,.6]; %peak power transfer efficiencies light and night
@@ -118,8 +118,8 @@ albM=0.29; %Mars albedo
 %% ADCS Sizing
 % Determine overall mass for craft based on all other components. Figure
 % out approximate mass moments of inertia based on spherical (and homogeneous) craft, and
-% deployed solar panels (using their mass). Determine disturbances and size
-% reaction wheels for a reasonable number of orbits, then size thrusters.
+% deployed solar panels (using their mass). Determine grav-gradient and solar disturbances and size
+% reaction wheels for a reasonable number of orbits maintaining within 5deg, then size thrusters.
 % Figure out propellant mass for mission life with thrusters, then add
 % margin and recalculate reaction wheels and fuel consumption to check.
 
@@ -130,6 +130,17 @@ albM=0.29; %Mars albedo
 % determine inert mass and fuel required. (We assume it detaches from
 % orbiter so ADCS doesn't have to worry about it)
 
+
+%% Booster sizing
+% Once mass is determined, investigate commercial launch options. If our
+% craft is too heavy, figure out the fuel and mass for a two or three stage
+% to orbit rocket and determine the cost.
+
+
+%% Price of mission
+% figure out price of components based on generic rates or specific
+% component information. Provide total cost and a breakdown by system, also
+% include the total time of mission costs
 
 
 %% Functions
@@ -286,7 +297,7 @@ v0s=(r1-fs*r0)/gs; %outputting short path initial and final velocity vectors
 v1s=(dgs*r1-r0)/gs;
 end
 
-function [G] = Gain(D,f,n)
+function [G] = Gain(D,f,n) %I may convert Gain and Tloss into anonymous functions
 % Computes antenna gain in dB
 % inputs are D=diameter, f=frequency, n=efficiency
 G=-159.6+10*log10(n)+20*log10(D)+20*log10(f); %gain [dB]
