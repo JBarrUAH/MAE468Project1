@@ -29,6 +29,7 @@ zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(
 
 vCAtoM=@(v) v*149597870.7/5.0226757e6; %km/s (AU/TU sun to km/s)
 
+muM=4.2828e4; %Mars mu, km^3/s^2
 %% Orbital Elements to Initial Vectors
 % Finds perifocal vectors from orbital elements, then converts to
 % vectors in heliocentric frame. Setup work for other tasks.
@@ -63,10 +64,11 @@ fprintf("\nSpacecraft at Mars RoI Arrival\n\t Heliocentric Velocity: %5.4f, %5.4
 % find delta v and calculations for the trajectory assuming ???
 % launch and 400km circular Mars parking orbit
 fprintf("\n---TASK d---");
+alt=400; %spacecraft parking orbit altitude in km
 vinf1=vCAtoM(norm(vxyz1-vxyzE1)); %finding vinf at Earth in km/s
 vinf2=vCAtoM(norm(vxyz2-vxyzM2)); %finding vinf at Mars in km/s
 dvE=sqrt(2*(vinf1^2/2+3.986e5/6578.1))-sqrt(3.986e5/6578.1); %finding dv for Earth orbit
-dvM=sqrt(4.2828e4/3796.2)-sqrt(2*(vinf2^2/2+4.2828e4/3796.2));%finding dv for Mars 400km altitude parking orbit
+dvM=sqrt(muM/(3396.2+alt))-sqrt(2*(vinf2^2/2+muM/(3396.2+alt)));%finding dv for Mars 400km altitude parking orbit
 fprintf("\n-OUTDATED- Earth parking orbit to vinf dv: %5.4f km/s\n",abs(dvE)); %displaying delta v
 fprintf("Mars vinf to parking orbit dv: %5.4f km/s\n",abs(dvM)); %displaying delta v to get Mars parking orbit
 
@@ -78,26 +80,38 @@ fprintf("\n---TASK e---\n");
 CasIns=[11.83,14.46,32;55.9,57.8,365;3.1,3,3.6;27.7,9.25,1.5]; %Cassini Instrument parameters [W,kg,max kb/s]
 DSN=[70,0.7,21]; %DSN [diameter,efficiency,noise temperature]
 comm=[13.8e9,100e6]; %communications [frequency, bandwidth] in Hz
-Mdist=[401e9,0]; %Mars distance information [max dist from earth m, XXXX]
+Mdist=[401e9,3389.5,227.923e6]; %Mars distance information [max dist from earth m, planet radius m, average orbit distance km]
 xmitt=[2.5,0.55,0,0]; %initializing transmitter information. [diameter m, efficiency,mass kg,power W]
 
 xmitt(3)=2.89*xmitt(1)^2+6.11*xmitt(1)-2.59; %calculating mass of transmitter in kg
 xmitt(4)=10^((14.7-Gain(xmitt(1),comm(1),xmitt(2))-Gain(DSN(1),comm(1),DSN(2))+Tloss(Mdist(1),comm(1))+10*log10(1e3*sum(CasIns(:,3))+2000)-228.6+10*log10(DSN(3)))/10); %transmitter power in W
+fprintf("Transmitter parameters\n\t Diameter: %3.1f m\n\t Efficiency: %3.2f\n\t Mass: %4.2f kg\n\t Max power consumption: %4.2f W\n",xmitt(1),xmitt(2),xmitt(3),xmitt(4));
 
 %% Power system sizing
 % Use calculated transmitter power consumption with Cassini instrument
-% consumption and provided waste hear converted to consumption to determine
-% solar panel sizing (assume Mars circular orbit for now). Also account for system degradation.
-% Find battery size accounting for degradation and power cycles - not accounting for thermal yet
+% consumption and plug into planetary orbiter total power equation with 30% subsystem margin to determine
+% solar panel sizing (assume Mars circular orbit for now). Also account for system degradation of 17yr mission.
+% Find battery size accounting for degradation and around 6000 power cycles life
 
+[TlM,TnM]=Ltime(Mdist(2),alt,muM,0); %assuming th0=0 for most conservative estimate [time in light,time in night] in seconds
+Pln=[sum(CasIns(:,1))+xmitt(4),sum(CasIns(:,1))]; %payload summation [power in light,power in night] both in W
+Pln=Pln+1.3*((332.93*log(max(Pln))-1046.6)-max(Pln)); %total orbiter power consumption [power in light,power in night] both in W
+
+Xln=[.8,.6]; %peak power transfer efficiencies light and night
+PsaM=((Pln(1)*TlM)/Xln(1)+(Pln(2)*TnM)/Xln(2))/TlM; %solar array required power
+PeolM=301*(149.596e6/Mdist(3))^2*0.77*cosd(0)*(1-0.005)^17; %end of life unit area power [W/m^2] for multijunction over 17 years
+SolarArray=[PsaM/PeolM,0,0]; %initializing solar array information [array area m,array mass kg, battery mass kg]
+SolarArray(2)=SolarArray(1)*4.0; %solar array mass in kg based on required area and rigid fold-out panels
+SolarArray(3)=((Pln(2)*TnM)/(0.45*.97))/(55*60*60); %determining required battery mass based on night power consumption, 45%DoD, 97% transfer efficiency, and SED of 55W-hr/kg
+fprintf("Power System Parameters\n\t Panel area: %4.2f m\n\t Array mass: %4.2f kg\n\t Battery mass: %4.2f kg\n",SolarArray(1),SolarArray(2),SolarArray(3));
 
 %% Thermal system sizing
 % Size thermal system based off of solar panels, arbitrary reasonable spacecraft size,
 % and Mars circular orbit. Figure out radiator size if needed and heater
-% power consumption. 
+% power consumption. Note, transmitter will only run during the day
 
-qMir=[162,120]*3389.5^2/(3389.5+400)^2; %Mars max and min IR for 400km circular orbit
-GsM=1367*(149.5/227.8)^2; %Solar at Mars
+qMir=[162,120]*Mdist(2)^2/(Mdist(2)+alt)^2; %Mars max and min IR for parking orbit
+GsM=1367*(149.596e6/Mdist(3))^2; %Solar at Mars based off of reference distances
 albM=0.29; %Mars albedo
 
 
@@ -283,5 +297,14 @@ function [Lt] = Tloss(x,f)
 % inputs are x=distance [km], f=frequency [Hz]
 Lp=-147.6+20*log10(x)+20*log10(f); %path loss [dB]
 Lt=Lp+1; %adding 1dB for other losses
+end
+
+function [Tl,Tn] = Ltime(R,H,mu,th0)
+% time in light and night for solar panel calculations
+% inputs: R=planet radius [km] H=orbit altitude [km], 
+% mu=planet mu [km^3/s^2], th0=eclipse angle (max use 0)
+Lfrac=(pi()+2*asin((R*acos(R./(R+H)))./((R+H)*cosd(th0))))./(2*pi()); %fraction of time in light
+Tl=Lfrac.*(2*(R+H).^(3/2)*pi())/sqrt(mu); %time in light
+Tn=(1-Lfrac).*(2*(R+H).^(3/2)*pi())/sqrt(mu); %time in night
 end
 
