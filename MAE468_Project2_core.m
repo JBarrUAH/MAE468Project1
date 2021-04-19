@@ -15,7 +15,6 @@ clc
 
 %% Orbital Variable Initialization
 % Includes orbital elements, locations, constants, anonymous functions, etc
-
 mu=1; %canonical mu, AU^3/TU^2 heliocentric or DU^3/TU^2 geocentric
 % a,e,i,OMEGA,omega,theta (AU,unitless,deg,deg,deg,deg)
 oeE=[1.000000,0.01671,0.00005,-11.26064,114.20783,-2.48284]; %Earth
@@ -23,10 +22,8 @@ oeM=[1.523662,0.093412,1.85061,49.57854,286.4623,19.41248]; %Mars
 % a,e,i,O,w,th is naming convention used in functions
 t0=datetime(2000,1,1,11,58,0); %setting initial time to the J2000 parameter
 ToFfun=@(tt) etime(datevec(tt),datevec(t0))/5.0226757e6; %anonymous function for finding ToF in AU
-
 zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(2pi)^2 
 % NOTE: Use 18 if elliptical, 0 if parabolic, -18 if hyperbolic
-
 vCAtoM=@(v) v*149597870.7/5.0226757e6; %km/s (AU/TU sun to km/s)
 
 muM=4.2828e4; %Mars mu, km^3/s^2
@@ -82,6 +79,8 @@ DSN=[70,0.7,21]; %DSN [diameter,efficiency,noise temperature]
 comm=[13.8e9,100e6]; %communications [frequency, bandwidth] in Hz
 Mdist=[401e9,3389.5,227.923e6]; %Mars distance information [max dist from Earth m, planet radius m, average orbit distance km]
 xmitt=[2.5,0.55,0,0]; %initializing transmitter information. [diameter m, efficiency,mass kg,power W]
+Gain=@(D,f,n) -159.6+10*log10(n)+20*log10(D)+20*log10(f); %antenna gain in dB
+Tloss=@(x,f) -147.6+20*log10(x)+20*log10(f)+1;%total path and other loss in dB
 
 xmitt(3)=2.89*xmitt(1)^2+6.11*xmitt(1)-2.59; %calculating mass of transmitter in kg
 xmitt(4)=10^((14.7-Gain(xmitt(1),comm(1),xmitt(2))-Gain(DSN(1),comm(1),DSN(2))+Tloss(Mdist(1),comm(1))+10*log10(1e3*sum(CasIns(:,3))+2000)-228.6+10*log10(DSN(3)))/10); %transmitter power in W
@@ -92,7 +91,6 @@ fprintf("Transmitter parameters\n\t Diameter: %3.1f m\n\t Efficiency: %3.2f\n\t 
 % consumption and plug into planetary orbiter total power equation with 30% subsystem margin to determine
 % solar panel sizing (assume Mars circular orbit for now). Also account for system degradation of 17yr mission.
 % Find battery size accounting for degradation and around 6000 power cycles life
-
 [TlM,TnM]=Ltime(Mdist(2),alt,muM,0); %assuming th0=0 for most conservative estimate [time in light,time in night] in seconds
 Pln=[sum(CasIns(:,1))+xmitt(4),sum(CasIns(:,1))]; %worst case payload power summation [power in light,power in night] both in W
 Pln=Pln+1.3*((332.93*log(max(Pln))-1046.6)-max(Pln)); %total orbiter power consumption [power in light,power in night] both in W
@@ -110,7 +108,7 @@ fprintf("Power System Parameters\n\t Panel area: %4.2f m\n\t Array mass: %4.2f k
 % and Mars circular orbit. Figure out radiator size if needed and heater
 % power consumption. Note, transmitter will only run during the day
 sfb=5.670374e-8; %stefan-boltzmann constant W/(m^2*K^4)
-qMir=[162,120]*Mdist(2)^2/(Mdist(2)+alt)^2; %Mars max and min IR for parking orbit base 141+-21
+qMir=[162,120]*Mdist(2)^2/(Mdist(2)+alt)^2; %Mars max and min IR for parking orbit
 GsM=1367*(149.596e6/Mdist(3))^2; %Solar at Mars based off of reference distances
 Qwaste=[(sum(CasIns(:,1))+xmitt(4))/2+80,80]; %electronics waste heat [max,min] both in W
 albM=0.29; %Mars albedo
@@ -308,18 +306,18 @@ v0s=(r1-fs*r0)/gs; %outputting short path initial and final velocity vectors
 v1s=(dgs*r1-r0)/gs;
 end
 
-function [G] = Gain(D,f,n) %I may convert Gain and Tloss into anonymous functions
-% Computes antenna gain in dB
-% inputs are D=diameter, f=frequency, n=efficiency
-G=-159.6+10*log10(n)+20*log10(D)+20*log10(f); %gain [dB]
-end
+% function [G] = Gain(D,f,n) %I may convert Gain and Tloss into anonymous functions
+% % Computes antenna gain in dB
+% % inputs are D=diameter, f=frequency, n=efficiency
+% G=-159.6+10*log10(n)+20*log10(D)+20*log10(f); %gain [dB]
+% end
 
-function [Lt] = Tloss(x,f)
-% Computes total loss in dB
-% inputs are x=distance [km], f=frequency [Hz]
-Lp=-147.6+20*log10(x)+20*log10(f); %path loss [dB]
-Lt=Lp+1; %adding 1dB for other losses
-end
+% function [Lt] = Tloss(x,f)
+% % Computes total loss in dB
+% % inputs are x=distance [km], f=frequency [Hz]
+% Lp=-147.6+20*log10(x)+20*log10(f); %path loss [dB]
+% Lt=Lp+1; %adding 1dB for other losses
+% end
 
 function [Tl,Tn] = Ltime(R,H,mu,th0)
 % time in light and night for solar panel calculations
