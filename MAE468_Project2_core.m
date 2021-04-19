@@ -65,7 +65,7 @@ alt=400; %spacecraft parking orbit altitude in km
 vinf1=vCAtoM(norm(vxyz1-vxyzE1)); %finding vinf at Earth in km/s
 vinf2=vCAtoM(norm(vxyz2-vxyzM2)); %finding vinf at Mars in km/s
 dvE=sqrt(2*(vinf1^2/2+3.986e5/6578.1))-sqrt(3.986e5/6578.1); %finding dv for Earth orbit
-dvM=sqrt(muM/(3396.2+alt))-sqrt(2*(vinf2^2/2+muM/(3396.2+alt)));%finding dv for Mars 400km altitude parking orbit
+dvM=sqrt(muM/(3389.5+alt))-sqrt(2*(vinf2^2/2+muM/(3389.5+alt)));%finding dv for Mars 400km altitude parking orbit
 fprintf("\n-OUTDATED- Earth parking orbit to vinf dv: %5.4f km/s\n",abs(dvE)); %displaying delta v
 fprintf("Mars vinf to parking orbit dv: %5.4f km/s\n",abs(dvM)); %displaying delta v to get Mars parking orbit
 
@@ -131,12 +131,12 @@ fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Ret
 % reaction wheels for a reasonable number of orbits maintaining within 5deg, then size thrusters.
 % Figure out propellant mass for mission life with thrusters, then add
 % margin and recalculate reaction wheels and fuel consumption to check.
-
+fprintf("\n\t\t Radiator mass: %5.2f kg\n\t\t Solar panel mass: %5.2f kg\n\t\t All other masses: %6.2fkg\n",mTsys(2),SolarArray(2),sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1));
 
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
 % engine for Mars arrival burn, based on the orbiter (payload) size,
-% determine inert mass and fuel required. (We assume it detaches from
+% determine inert mass and fuel required. (We assume transfer craft detaches from
 % orbiter so ADCS doesn't have to worry about it)
 
 
@@ -306,19 +306,6 @@ v0s=(r1-fs*r0)/gs; %outputting short path initial and final velocity vectors
 v1s=(dgs*r1-r0)/gs;
 end
 
-% function [G] = Gain(D,f,n) %I may convert Gain and Tloss into anonymous functions
-% % Computes antenna gain in dB
-% % inputs are D=diameter, f=frequency, n=efficiency
-% G=-159.6+10*log10(n)+20*log10(D)+20*log10(f); %gain [dB]
-% end
-
-% function [Lt] = Tloss(x,f)
-% % Computes total loss in dB
-% % inputs are x=distance [km], f=frequency [Hz]
-% Lp=-147.6+20*log10(x)+20*log10(f); %path loss [dB]
-% Lt=Lp+1; %adding 1dB for other losses
-% end
-
 function [Tl,Tn] = Ltime(R,H,mu,th0)
 % time in light and night for solar panel calculations
 % inputs: R=planet radius [km] H=orbit altitude [km], 
@@ -328,3 +315,18 @@ Tl=Lfrac.*(2*(R+H).^(3/2)*pi())/sqrt(mu); %time in light
 Tn=(1-Lfrac).*(2*(R+H).^(3/2)*pi())/sqrt(mu); %time in night
 end
 
+function [Tg] = Tgrav(Iz,Iy,R,mu,th)
+Tg=3/2*mu/R^3*abs(Iz-Iy)*sind(2*th);
+end
+
+function [Ts] = Tsolar(Gs,As,x,q,i)
+% Assumes in metric units, not canonical. i in degrees
+Fs=Gs/299792458*As*(1+q)*cosd(i); %solar pressure
+Ts=Fs*x; %solar torque
+end
+
+function [Ft,mp] = MDump(h,L,t,isp)
+% Assumes Earth parameters, thruster sizing and propellant use for momentum dump
+Ft=h/(L*t); %thruster force
+mp=Ft*t/(isp*9.80665); %propellant mass
+end
