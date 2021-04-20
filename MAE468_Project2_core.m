@@ -113,11 +113,11 @@ GsM=1367*(149.596e6/Mdist(3))^2; %Solar at Mars based off of reference distances
 Qwaste=[(sum(CasIns(:,1))+xmitt(4))/2+80,80]; %electronics waste heat [max,min] both in W
 albM=0.29; %Mars albedo
 Tlim=[30,10]+273; %spacecraft temperature limits [max,min] both in K <see paper for assumptions>
-SCdim=[2,0,0]; %initializing spacecraft dimensions [radius m,area in m^2,area out m^2]
+SCdim=[1.55,0,0]; %initializing spacecraft dimensions [radius m,area in m^2,area out m^2]
 SCdim=[SCdim(1),pi()*SCdim(1)^2,4*pi()*SCdim(1)^2]; %calculating the areas
 ae=[0.30,0.03,0.8,0.78,0.17,0.92]; %surface radiation factors [SCgold abs,SCgold emis,solar panel abs,radiator emis,SCpaint abs,SCpaint emis] 
 %using vapor deposited gold SC coating and 5mil alumized teflon radiators with some of the spacecraft painted white with Z93 paint
-cfrac=0.148; %fraction of spacecraft surface that is painted white instead of gold coated
+cfrac=0.22; %fraction of spacecraft surface that is painted white instead of gold coated
 
 Qsolalb=(1+albM)*GsM*((ae(5)*cfrac+ae(1)*(1-cfrac))*SCdim(2)+ae(3)*SolarArray(1)); %total solar Qin including albedo and solar panels [max,min] in W
 Qir=qMir*(SCdim(2)+SolarArray(1)); %planet IR Qin [max,min] in W
@@ -135,6 +135,12 @@ fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Ret
 % margin and recalculate reaction wheels and fuel consumption to check.
 fprintf("\n\t\t Radiator mass: %5.2f kg\n\t\t Solar panel mass: %5.2f kg\n\t\t All other masses: %6.2fkg\n",mTsys(2),SolarArray(2),sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1));
 fprintf("\t\t Total current mass: %5.2f kg\n",sum(CasIns(:,2))+xmitt(3)+SolarArray(2)+SolarArray(3)+sum(mTsys));
+
+SCmI=[sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1),0,0,0]; %initializing spacecraft mass and mass moments of inertia
+SCmI(2)=2/5*(SCmI(1)+mTsys(2))*SCdim(1)^2+(SolarArray(1)/4);
+SCmI(3)=2/5*SCmI(1)*SCdim(1)^2;
+SCmI(4)=2/5*SCmI(1)*SCdim(1)^2;
+
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
 % engine for Mars arrival burn, based on the orbiter (payload) size,
