@@ -5,6 +5,7 @@
 %% Notes
 %source used for some constants: http://www.dept.aoe.vt.edu/~lutze/AOE2104/consts.pdf
 %source for Mars and Earth patch-conic https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
+%source for Isp of ADCS thrusters https://core.ac.uk/download/pdf/10550889.pdf
 
 %% Housekeeping
 % Run to remove figures, workspace variables and command window content
@@ -141,8 +142,13 @@ SCmI(2)=2/5*SCmI(1)*SCdim(1)^2+(0.05^2+2^2)/12*SolarArray(2)+((SCdim(1)+max(Arad
 SCmI(3)=2/5*SCmI(1)*SCdim(1)^2+((SolarArray(1)/4+0.25)^2+((SolarArray(1)/2)^2+0.05^2)/12)*SolarArray(2)+((SCdim(1)+max(Arad)/6)^2+(3^2+0.15^2)/12)*mTsys(2); %y axis moment
 SCmI(4)=2/5*SCmI(1)*SCdim(1)^2+((SolarArray(1)/4+0.25)^2+((SolarArray(1)/2)^2+2^2)/12)*SolarArray(2)+(0.15^2+3^2)/12*mTsys(2); %z axis moment
 SCmI(5)=SCmI(1)+mTsys(2)+SolarArray(2); %total mass of craft
+
 SCdstrb=Tgrav(SCmI(4),SCmI(3),Mdist(2)+alt,muM,5);%symmetric solar panels, so only grav-gradient torque for 5deg attitude
-fprintf("\t\t Total current mass: %5.2f kg\n\t\t Disturbance torque: %5.3f\n",SCmI(5),SCdstrb);
+SCdstrb(2)=SCdstrb(1)*(TlM+TnM)/4*0.707; %orbit total disturbance in N*m*s
+fprintf("\t\t Total current mass: %5.2f kg\n\t\t Disturbance torque: %7.6f N*m\n\t\t Total orbit h: %5.3f N*m*s\n\t\t Total orbits: %5.2f\n",SCmI(5),SCdstrb(1),SCdstrb(2),(TlM+TnM)/(60*60*24)*365.25*17);
+[ADCS(1),ADCS(2)]=Mdump(10*SCdstrb(2),SCdim(1),10,225); %dumping 10 orbits of stored momentum using thrusters tangent to sphere in 10 seconds using thrusters with Isp=225 seconds
+%use Honeywell HR 12-25 to have plenty of margin, mass of each is 7kg. Will
+%need around 0.2kg of fuel for the thrusters over the mission period
 
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
@@ -336,7 +342,7 @@ Fs=Gs/299792458*As*(1+q)*cosd(i); %solar pressure
 Ts=Fs*x; %solar torque
 end
 
-function [Ft,mp] = MDump(h,L,t,isp)
+function [Ft,mp] = Mdump(h,L,t,isp)
 % Assumes Earth parameters, thruster sizing and propellant use for momentum dump
 Ft=h/(L*t); %thruster force
 mp=Ft*t/(isp*9.80665); %propellant mass
