@@ -136,10 +136,13 @@ fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Ret
 fprintf("\n\t\t Radiator mass: %5.2f kg\n\t\t Solar panel mass: %5.2f kg\n\t\t All other masses: %6.2fkg\n",mTsys(2),SolarArray(2),sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1));
 fprintf("\t\t Total current mass: %5.2f kg\n",sum(CasIns(:,2))+xmitt(3)+SolarArray(2)+SolarArray(3)+sum(mTsys));
 
-SCmI=[sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1),0,0,0]; %initializing spacecraft mass and mass moments of inertia
-SCmI(2)=2/5*(SCmI(1)+mTsys(2))*SCdim(1)^2+(SolarArray(1)/4);
-SCmI(3)=2/5*SCmI(1)*SCdim(1)^2;
-SCmI(4)=2/5*SCmI(1)*SCdim(1)^2;
+SCmI=[sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1)+60+300,0,0,0,0]; %initializing spacecraft sphere mass and mass moments of inertia [sphere mass,xmoment,ymoment,zmoment,total mass]
+SCmI(2)=2/5*SCmI(1)*SCdim(1)^2+(0.05^2+2^2)/12*SolarArray(2)+((SCdim(1)+max(Arad)/6)^2+(3^2+(max(Arad)/3)^2)/12)*mTsys(2); %x axis moment, see paper for assumptions
+SCmI(3)=2/5*SCmI(1)*SCdim(1)^2+((SolarArray(1)/4+0.25)^2+((SolarArray(1)/2)^2+0.05^2)/12)*SolarArray(2)+((SCdim(1)+max(Arad)/6)^2+(3^2+0.15^2)/12)*mTsys(2); %y axis moment
+SCmI(4)=2/5*SCmI(1)*SCdim(1)^2+((SolarArray(1)/4+0.25)^2+((SolarArray(1)/2)^2+2^2)/12)*SolarArray(2)+(0.15^2+3^2)/12*mTsys(2); %z axis moment
+SCmI(5)=SCmI(1)+mTsys(2)+SolarArray(2); %total mass of craft
+SCdstrb=Tgrav(SCmI(4),SCmI(3),Mdist(2)+alt,muM,5);%symmetric solar panels, so only grav-gradient torque for 5deg attitude
+fprintf("\t\t Total current mass: %5.2f kg\n\t\t Disturbance torque: %5.3f\n",SCmI(5),SCdstrb);
 
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
