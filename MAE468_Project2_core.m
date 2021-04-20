@@ -115,13 +115,15 @@ albM=0.29; %Mars albedo
 Tlim=[30,10]+273; %spacecraft temperature limits [max,min] both in K <see paper for assumptions>
 SCdim=[2,0,0]; %initializing spacecraft dimensions [radius m,area in m^2,area out m^2]
 SCdim=[SCdim(1),pi()*SCdim(1)^2,4*pi()*SCdim(1)^2]; %calculating the areas
-ae=[0.30,0.03,0.8,0.78]; %surface radiation factors [SC abs,SC emis,solar panel abs,radiator emis] using vapor deposited gold SC coating and 5mil alumized teflon radiators
+ae=[0.30,0.03,0.8,0.78,0.17,0.92]; %surface radiation factors [SCgold abs,SCgold emis,solar panel abs,radiator emis,SCpaint abs,SCpaint emis] 
+%using vapor deposited gold SC coating and 5mil alumized teflon radiators with some of the spacecraft painted white with Z93 paint
+cfrac=0.148; %fraction of spacecraft surface that is painted white instead of gold coated
 
-Qsolalb=(1+albM)*GsM*(ae(1)*SCdim(2)+ae(3)*SolarArray(1)); %total solar Qin including albedo and solar panels [max,min] in W
+Qsolalb=(1+albM)*GsM*((ae(5)*cfrac+ae(1)*(1-cfrac))*SCdim(2)+ae(3)*SolarArray(1)); %total solar Qin including albedo and solar panels [max,min] in W
 Qir=qMir*(SCdim(2)+SolarArray(1)); %planet IR Qin [max,min] in W
 %Temps=[((Qsolalb+max(Qir)+max(Qwaste))/(SCdim(3)*ae(2)*sfb))^(1/4),((min(Qir)+min(Qwaste))/(SCdim(3)*ae(2)*sfb))^(1/4)]; %SC temperatures without radiator [max,min] both in K
-Arad=[(Qsolalb+max(Qir)+max(Qwaste)-SCdim(3)*ae(2)*sfb*max(Tlim)^4)/(ae(4)*sfb*max(Tlim)^4),(min(Qir)+min(Qwaste)-SCdim(3)*ae(2)*sfb*min(Tlim)^4)/(ae(4)*sfb*min(Tlim)^4)]; %deployed radiator sizing for hot and cold cases
-mTsys=[19.3e3*100e-9*SCdim(3),max(Arad)*2.707]; %thermal system masses [mass of gold coating kg,mass of radiators kg]
+Arad=[(Qsolalb+max(Qir)+max(Qwaste)-SCdim(3)*(ae(6)*cfrac+ae(2)*(1-cfrac))*sfb*max(Tlim)^4)/(ae(4)*sfb*max(Tlim)^4),(min(Qir)+min(Qwaste)-SCdim(3)*(ae(6)*cfrac+ae(2)*(1-cfrac))*sfb*min(Tlim)^4)/(ae(4)*sfb*min(Tlim)^4)]; %deployed radiator sizing for hot and cold cases
+mTsys=[(0.24*cfrac+19.3e3*100e-9*(1-cfrac))*SCdim(3),max(Arad)*2.707]; %thermal system masses [mass of paint and gold coating kg,mass of radiators kg]
 fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Retracted radiator area: %4.2f m^2\n\t Thermal system mass: %4.2f kg\n",Arad(1),Arad(2),sum(mTsys));
 
 %% ADCS Sizing
@@ -132,7 +134,7 @@ fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Ret
 % Figure out propellant mass for mission life with thrusters, then add
 % margin and recalculate reaction wheels and fuel consumption to check.
 fprintf("\n\t\t Radiator mass: %5.2f kg\n\t\t Solar panel mass: %5.2f kg\n\t\t All other masses: %6.2fkg\n",mTsys(2),SolarArray(2),sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1));
-
+fprintf("\t\t Total current mass: %5.2f kg\n",sum(CasIns(:,2))+xmitt(3)+SolarArray(2)+SolarArray(3)+sum(mTsys));
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
 % engine for Mars arrival burn, based on the orbiter (payload) size,
