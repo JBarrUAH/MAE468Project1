@@ -28,9 +28,7 @@ zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(
 vCAtoM=@(v) v*149597870.7/5.0226757e6; %km/s (AU/TU sun to km/s)
 
 muM=4.2828e4; %Mars mu, km^3/s^2
-%% Orbital Elements to Initial Vectors
-% Finds perifocal vectors from orbital elements, then converts to
-% vectors in heliocentric frame. Setup work for other tasks.
+
 [rxyzE0,vxyzE0]=OEtoXYZ(oeE(1),oeE(2),oeE(3),oeE(4),oeE(5),oeE(6),1);
 [rxyzM0,vxyzM0]=OEtoXYZ(oeM(1),oeM(2),oeM(3),oeM(4),oeM(5),oeM(6),1);
 %% Tasks a and b
@@ -134,21 +132,19 @@ fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Ret
 % reaction wheels for a reasonable number of orbits maintaining within 5deg, then size thrusters.
 % Figure out propellant mass for mission life with thrusters, then add
 % margin and recalculate reaction wheels and fuel consumption to check.
-fprintf("\n\t\t Radiator mass: %5.2f kg\n\t\t Solar panel mass: %5.2f kg\n\t\t All other masses: %6.2fkg\n",mTsys(2),SolarArray(2),sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1));
-fprintf("\t\t Total current mass: %5.2f kg\n",sum(CasIns(:,2))+xmitt(3)+SolarArray(2)+SolarArray(3)+sum(mTsys));
-
 SCmI=[sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1)+60+300,0,0,0,0]; %initializing spacecraft sphere mass and mass moments of inertia [sphere mass,xmoment,ymoment,zmoment,total mass]
-SCmI(2)=2/5*SCmI(1)*SCdim(1)^2+(0.05^2+2^2)/12*SolarArray(2)+((SCdim(1)+max(Arad)/6)^2+(3^2+(max(Arad)/3)^2)/12)*mTsys(2); %x axis moment, see paper for assumptions
-SCmI(3)=2/5*SCmI(1)*SCdim(1)^2+((SolarArray(1)/4+0.25)^2+((SolarArray(1)/2)^2+0.05^2)/12)*SolarArray(2)+((SCdim(1)+max(Arad)/6)^2+(3^2+0.15^2)/12)*mTsys(2); %y axis moment
+
+SCmI(2)=2/5*SCmI(1)*SCdim(1)^2+((SolarArray(1)/4+0.25)^2+((SolarArray(1)/2)^2+0.05^2)/12)*SolarArray(2)+((SCdim(1)+max(Arad)/6)^2+(3^2+0.15^2)/12)*mTsys(2); %x axis moment
+SCmI(3)=2/5*SCmI(1)*SCdim(1)^2+(0.05^2+2^2)/12*SolarArray(2)+((SCdim(1)+max(Arad)/6)^2+(3^2+(max(Arad)/3)^2)/12)*mTsys(2); %y axis moment, see paper for assumptions
 SCmI(4)=2/5*SCmI(1)*SCdim(1)^2+((SolarArray(1)/4+0.25)^2+((SolarArray(1)/2)^2+2^2)/12)*SolarArray(2)+(0.15^2+3^2)/12*mTsys(2); %z axis moment
 SCmI(5)=SCmI(1)+mTsys(2)+SolarArray(2); %total mass of craft
 
 SCdstrb=Tgrav(SCmI(4),SCmI(3),Mdist(2)+alt,muM,5);%symmetric solar panels, so only grav-gradient torque for 5deg attitude
 SCdstrb(2)=SCdstrb(1)*(TlM+TnM)/4*0.707; %orbit total disturbance in N*m*s
-fprintf("\t\t Total current mass: %5.2f kg\n\t\t Disturbance torque: %7.6f N*m\n\t\t Total orbit h: %5.3f N*m*s\n\t\t Total orbits: %5.2f\n",SCmI(5),SCdstrb(1),SCdstrb(2),(TlM+TnM)/(60*60*24)*365.25*17);
 [ADCS(1),ADCS(2)]=Mdump(10*SCdstrb(2),SCdim(1),10,225); %dumping 10 orbits of stored momentum using thrusters tangent to sphere in 10 seconds using thrusters with Isp=225 seconds
 %use Honeywell HR 12-25 to have plenty of margin, mass of each is 7kg. Will
 %need around 0.2kg of fuel for the thrusters over the mission period
+
 
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
