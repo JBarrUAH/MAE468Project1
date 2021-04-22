@@ -141,17 +141,20 @@ SCmI(4)=2/5*SCmI(1)*SCdim(1)^2+((SolarArray(1)/4+0.25)^2+((SolarArray(1)/2)^2+2^
 SCdstrb=Tgrav(SCmI(4),SCmI(3),Mdist(2)+alt,muM,5);%symmetric solar panels, so only grav-gradient torque for 5deg attitude
 SCdstrb(2)=SCdstrb(1)*(TlM+TnM)/4*0.707; %orbit total disturbance in N*m*s
 [ADCS(1),ADCS(2)]=Mdump(50*SCdstrb(2),SCdim(1),30,202); %dumping stored momentum, some manual iteration required to find parameters to keep required thrust under 1N
-ADCS(3)=4*(8.5)+6*(0.37)+(ADCS(2)*((TlM+TnM)/(60*60*24)*(365.25*17))/50*5); %ADCS mass, accounts for 4 reaction wheels, 6 thrusters, and 500% necessary fuel
+ADCS(3)=4*(8.5)+8*(0.37)+(ADCS(2)*((TlM+TnM)/(60*60*24)*(365.25*17))/50*5); %ADCS mass, accounts for 4 reaction wheels, 8 thrusters, and 500% necessary fuel
 fprintf("ADCS System Parameters\n\t Stored momentum for 50 orbits: %5.2f N*m*s\n\t Thrust for 30 second momentum dump: %4.2f N\n\t Fuel required for 500%% mission life: %5.3f kg\n\t ADCS system mass: %5.2f kg\n",50*SCdstrb(2),ADCS(1),ADCS(2)*((TlM+TnM)/(60*60*24)*(365.25*17))/50*5,ADCS(3));
-SCmI(5)=SCmI(1)+mTsys(2)+SolarArray(2)+ADCS(3); %total spacecraft mass
 
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
 % engine for Mars arrival burn, based on the orbiter (payload) size,
 % determine inert mass and fuel required.
+propP=[exp(abs(dvM*1000)/(9.80665*223)),0.31]; %propulsion parameters. [MR,IMF] finding orbiter worst case MR based on Mars injection orbit with MR-104H thrusters
+SCmI(5)=SCmI(1)+mTsys(2)+SolarArray(2)+ADCS(3); %total spacecraft mass
+SCmI(6)=SCmI(5)*(propP(1)-1)*(1-propP(2))/(1-propP(1)*propP(2)); %orbiter propellant mass
+SCmI(7)=propP(2)/(1-propP(2))*SCmI(6); %orbiter inert mass
+fprintf("\n\t\tSpacecraft mass %6.2f\n\t\tpropellant mass %6.2f\n\t\tinert mass %6.2f\n",SCmI(5),SCmI(6),SCmI(7));
 
-
-%% Booster sizing
+%% Launch craft sizing
 % Once mass is determined, investigate commercial launch options. If our
 % craft is too heavy, figure out the fuel and mass for a two or three stage
 % to orbit rocket and determine the cost.
