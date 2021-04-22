@@ -4,10 +4,11 @@
 
 %% Notes
 %source used for some constants: http://www.dept.aoe.vt.edu/~lutze/AOE2104/consts.pdf
-%source for Mars and Earth patch-conic https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
+%source for Mars and Earth constants https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
 %ADCS reaction wheel source, using HR 14-50 https://satcatalog.com/datasheet/Honeywell%20-%20HR12-25.pdf
 %ADCS thruster source, using MR-103J https://www.rocket.com/sites/default/files/documents/In-Space%20Data%20Sheets%204.8.20.pdf
-
+%Launch Vehicle source, using Falcon Heavy https://www.spacelaunchreport.com/falconH.html
+%Launch Vehicle cost, Falcon Heavy https://www.faa.gov/about/office_org/headquarters_offices/ast/media/2018_ast_compendium.pdf
 
 %% Housekeeping
 % Run to remove figures, workspace variables and command window content
@@ -59,16 +60,14 @@ fprintf("Spacecraft at Earth RoI departure\n\t Heliocentric Velocity: %5.4f, %5.
 fprintf("\nSpacecraft at Mars RoI Arrival\n\t Heliocentric Velocity: %5.4f, %5.4f, %5.4f AU/TU\n",vxyz2(1),vxyz2(2),vxyz2(3));
 
 %% Task d
-% find delta v and calculations for the trajectory assuming ???
+% Find delta v and escape velocity for the trajectory assuming Earth
 % launch and 400km circular Mars parking orbit
 fprintf("\n---TASK d---");
 alt=400; %spacecraft parking orbit altitude in km
 vinf1=vCAtoM(norm(vxyz1-vxyzE1)); %finding vinf at Earth in km/s
 vinf2=vCAtoM(norm(vxyz2-vxyzM2)); %finding vinf at Mars in km/s
-dvE=sqrt(2*(vinf1^2/2+3.986e5/6578.1))-sqrt(3.986e5/6578.1); %finding dv for Earth orbit
 dvM=sqrt(muM/(3389.5+alt))-sqrt(2*(vinf2^2/2+muM/(3389.5+alt)));%finding dv for Mars 400km altitude parking orbit
-fprintf("\n-OUTDATED- Earth parking orbit to vinf dv: %5.4f km/s\n",abs(dvE)); %displaying delta v
-fprintf("Mars vinf to parking orbit dv: %5.4f km/s\n",abs(dvM)); %displaying delta v to get Mars parking orbit
+fprintf("\nMars vinf to parking orbit dv: %5.4f km/s\n",abs(dvM)); %displaying delta v to get Mars parking orbit
 
 %% Transmitter sizing
 % Size transmitter based on longest distance, data transfer with 2kbps
@@ -159,13 +158,12 @@ fprintf("Propulsion System Parameters\n\t Payload mass: %6.2f kg\n\t Propellant 
 % Once mass is determined, investigate commercial launch options. If our
 % craft is too heavy, figure out the fuel and mass for a two or three stage
 % to orbit rocket and determine the cost.
-
-%disp(vinf2); %temporary for checking things
+fprintf("Launch Craft Selection\n\t Based on spacecraft mass and desired transfer orbit, a Falcon Heavy will\n\t be used to obtain the required Earth escape velocity of %5.3f km/s\n",vinf1);
 
 %% Price of mission
 % figure out price of components based on generic rates or specific
 % component information. Don't think we actually need this, but it's easy.
-cost=0.2*SCmI(8)+20*(17+190/365.2425)+1230; %cost in M of dollars, the 1230 is for a Saturn V
+cost=0.2*SCmI(8)+20*(17+190/365.2425)+270; %cost in M of dollars
 fprintf("Total mission cost: $%4.3f Billion\n",cost/1000);
 
 %% Functions
