@@ -5,7 +5,9 @@
 %% Notes
 %source used for some constants: http://www.dept.aoe.vt.edu/~lutze/AOE2104/consts.pdf
 %source for Mars and Earth patch-conic https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
-%source for Isp of ADCS thrusters https://core.ac.uk/download/pdf/10550889.pdf
+%ADCS reaction wheel source, using HR 14-50 https://satcatalog.com/datasheet/Honeywell%20-%20HR12-25.pdf
+%ADCS thruster source, using MR-103J https://www.rocket.com/sites/default/files/documents/In-Space%20Data%20Sheets%204.8.20.pdf
+
 
 %% Housekeeping
 % Run to remove figures, workspace variables and command window content
@@ -83,7 +85,7 @@ Tloss=@(x,f) -147.6+20*log10(x)+20*log10(f)+1;%total path and other loss in dB
 
 xmitt(3)=2.89*xmitt(1)^2+6.11*xmitt(1)-2.59; %calculating mass of transmitter in kg
 xmitt(4)=10^((14.7-Gain(xmitt(1),comm(1),xmitt(2))-Gain(DSN(1),comm(1),DSN(2))+Tloss(Mdist(1),comm(1))+10*log10(1e3*sum(CasIns(:,3))+2000)-228.6+10*log10(DSN(3)))/10); %transmitter power in W
-fprintf("Transmitter parameters\n\t Diameter: %3.1f m\n\t Efficiency: %3.2f\n\t Mass: %4.2f kg\n\t Max power consumption: %4.2f W\n",xmitt(1),xmitt(2),xmitt(3),xmitt(4));
+fprintf("Transmitter parameters\n\t Diameter: %3.1f m\n\t Efficiency: %3.2f\n\t Max power consumption: %4.2f W\n\t Mass: %4.2f kg\n",xmitt(1),xmitt(2),xmitt(4),xmitt(3));
 
 %% Power system sizing
 % Use calculated transmitter power consumption with Cassini instrument
@@ -126,31 +128,27 @@ mTsys=[(0.24*cfrac+19.3e3*100e-9*(1-cfrac))*SCdim(3),max(Arad)*2.707]; %thermal 
 fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Retracted radiator area: %4.2f m^2\n\t Thermal system mass: %4.2f kg\n",Arad(1),Arad(2),sum(mTsys));
 
 %% ADCS Sizing
-% Determine overall mass for craft based on all other components. Figure
+% Determine overall mass for craft based on all other components, add 60kg for CDS. Figure
 % out approximate mass moments of inertia based on spherical (and homogeneous) craft, and
 % deployed solar panels (using their mass). Determine grav-gradient and solar disturbances and size
 % reaction wheels for a reasonable number of orbits maintaining within 5deg, then size thrusters.
-% Figure out propellant mass for mission life with thrusters, then add
-% margin and recalculate reaction wheels and fuel consumption to check.
-SCmI=[sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1)+60+300,0,0,0,0]; %initializing spacecraft sphere mass and mass moments of inertia [sphere mass,xmoment,ymoment,zmoment,total mass]
-
+% Figure out propellant mass for mission life with thrusters, then add margin.
+SCmI=[sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1)+60,0,0,0,0]; %initializing spacecraft sphere mass and mass moments of inertia [sphere mass,xmoment,ymoment,zmoment,total mass]
 SCmI(2)=2/5*SCmI(1)*SCdim(1)^2+((SolarArray(1)/4+0.25)^2+((SolarArray(1)/2)^2+0.05^2)/12)*SolarArray(2)+((SCdim(1)+max(Arad)/6)^2+(3^2+0.15^2)/12)*mTsys(2); %x axis moment
 SCmI(3)=2/5*SCmI(1)*SCdim(1)^2+(0.05^2+2^2)/12*SolarArray(2)+((SCdim(1)+max(Arad)/6)^2+(3^2+(max(Arad)/3)^2)/12)*mTsys(2); %y axis moment, see paper for assumptions
 SCmI(4)=2/5*SCmI(1)*SCdim(1)^2+((SolarArray(1)/4+0.25)^2+((SolarArray(1)/2)^2+2^2)/12)*SolarArray(2)+(0.15^2+3^2)/12*mTsys(2); %z axis moment
-SCmI(5)=SCmI(1)+mTsys(2)+SolarArray(2); %total mass of craft
 
 SCdstrb=Tgrav(SCmI(4),SCmI(3),Mdist(2)+alt,muM,5);%symmetric solar panels, so only grav-gradient torque for 5deg attitude
 SCdstrb(2)=SCdstrb(1)*(TlM+TnM)/4*0.707; %orbit total disturbance in N*m*s
-[ADCS(1),ADCS(2)]=Mdump(10*SCdstrb(2),SCdim(1),10,225); %dumping 10 orbits of stored momentum using thrusters tangent to sphere in 10 seconds using thrusters with Isp=225 seconds
-%use Honeywell HR 12-25 to have plenty of margin, mass of each is 7kg. Will
-%need around 0.2kg of fuel for the thrusters over the mission period
-
+[ADCS(1),ADCS(2)]=Mdump(50*SCdstrb(2),SCdim(1),30,202); %dumping stored momentum, some manual iteration required to find parameters to keep required thrust under 1N
+ADCS(3)=4*(8.5)+6*(0.37)+(ADCS(2)*((TlM+TnM)/(60*60*24)*(365.25*17))/50*5); %ADCS mass, accounts for 4 reaction wheels, 6 thrusters, and 500% necessary fuel
+fprintf("ADCS System Parameters\n\t Stored momentum for 50 orbits: %5.2f N*m*s\n\t Thrust for 30 second momentum dump: %4.2f N\n\t Fuel required for 500%% mission life: %5.3f kg\n\t ADCS system mass: %5.2f kg\n",50*SCdstrb(2),ADCS(1),ADCS(2)*((TlM+TnM)/(60*60*24)*(365.25*17))/50*5,ADCS(3));
+SCmI(5)=SCmI(1)+mTsys(2)+SolarArray(2)+ADCS(3); %total spacecraft mass
 
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
 % engine for Mars arrival burn, based on the orbiter (payload) size,
-% determine inert mass and fuel required. (We assume transfer craft detaches from
-% orbiter so ADCS doesn't have to worry about it)
+% determine inert mass and fuel required.
 
 
 %% Booster sizing
@@ -332,14 +330,14 @@ function [Tg] = Tgrav(Iz,Iy,R,mu,th)
 Tg=3/2*mu/R^3*abs(Iz-Iy)*sind(2*th);
 end
 
-function [Ts] = Tsolar(Gs,As,x,q,i)
-% Assumes in metric units, not canonical. i in degrees
-Fs=Gs/299792458*As*(1+q)*cosd(i); %solar pressure
-Ts=Fs*x; %solar torque
-end
+% function [Ts] = Tsolar(Gs,As,x,q,i)
+% % Assumes in metric units, not canonical. i in degrees
+% Fs=Gs/299792458*As*(1+q)*cosd(i); %solar pressure
+% Ts=Fs*x; %solar torque
+% end
 
 function [Ft,mp] = Mdump(h,L,t,isp)
-% Assumes Earth parameters, thruster sizing and propellant use for momentum dump
+% Thruster sizing and propellant use for momentum dump
 Ft=h/(L*t); %thruster force
 mp=Ft*t/(isp*9.80665); %propellant mass
 end
