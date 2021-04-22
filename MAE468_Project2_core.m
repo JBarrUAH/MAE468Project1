@@ -118,7 +118,7 @@ SCdim=[1.55,0,0]; %initializing spacecraft dimensions [radius m,area in m^2,area
 SCdim=[SCdim(1),pi()*SCdim(1)^2,4*pi()*SCdim(1)^2]; %calculating the areas
 ae=[0.30,0.03,0.8,0.78,0.17,0.92]; %surface radiation factors [SCgold abs,SCgold emis,solar panel abs,radiator emis,SCpaint abs,SCpaint emis] 
 %using vapor deposited gold SC coating and 5mil alumized teflon radiators with some of the spacecraft painted white with Z93 paint
-cfrac=0.22; %fraction of spacecraft surface that is painted white instead of gold coated
+cfrac=0.216; %fraction of spacecraft surface that is painted white instead of gold coated
 
 Qsolalb=(1+albM)*GsM*((ae(5)*cfrac+ae(1)*(1-cfrac))*SCdim(2)+ae(3)*SolarArray(1)); %total solar Qin including albedo and solar panels [max,min] in W
 Qir=qMir*(SCdim(2)+SolarArray(1)); %planet IR Qin [max,min] in W
@@ -141,30 +141,32 @@ SCmI(4)=2/5*SCmI(1)*SCdim(1)^2+((SolarArray(1)/4+0.25)^2+((SolarArray(1)/2)^2+2^
 SCdstrb=Tgrav(SCmI(4),SCmI(3),Mdist(2)+alt,muM,5);%symmetric solar panels, so only grav-gradient torque for 5deg attitude
 SCdstrb(2)=SCdstrb(1)*(TlM+TnM)/4*0.707; %orbit total disturbance in N*m*s
 [ADCS(1),ADCS(2)]=Mdump(50*SCdstrb(2),SCdim(1),30,202); %dumping stored momentum, some manual iteration required to find parameters to keep required thrust under 1N
-ADCS(3)=4*(8.5)+8*(0.37)+(ADCS(2)*((TlM+TnM)/(60*60*24)*(365.25*17))/50*5); %ADCS mass, accounts for 4 reaction wheels, 8 thrusters, and 500% necessary fuel
+ADCS(3)=4*(8.5)+8*(0.37)+(ADCS(2)*((TlM+TnM)/(60*60*24)*(365.2425*17))/50*5); %ADCS mass, accounts for 4 reaction wheels, 8 thrusters, and 500% necessary fuel
 fprintf("ADCS System Parameters\n\t Stored momentum for 50 orbits: %5.2f N*m*s\n\t Thrust for 30 second momentum dump: %4.2f N\n\t Fuel required for 500%% mission life: %5.3f kg\n\t ADCS system mass: %5.2f kg\n",50*SCdstrb(2),ADCS(1),ADCS(2)*((TlM+TnM)/(60*60*24)*(365.25*17))/50*5,ADCS(3));
 
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
 % engine for Mars arrival burn, based on the orbiter (payload) size,
 % determine inert mass and fuel required.
-propP=[exp(abs(dvM*1000)/(9.80665*223)),0.31]; %propulsion parameters. [MR,IMF] finding orbiter worst case MR based on Mars injection orbit with MR-104H thrusters
+propP=[exp(abs(dvM*1000)/(9.80665*223)),0.3]; %propulsion parameters. [MR,IMF] finding orbiter worst case MR based on Mars injection orbit with MR-104H thrusters
 SCmI(5)=SCmI(1)+mTsys(2)+SolarArray(2)+ADCS(3); %total spacecraft mass
 SCmI(6)=SCmI(5)*(propP(1)-1)*(1-propP(2))/(1-propP(1)*propP(2)); %orbiter propellant mass
 SCmI(7)=propP(2)/(1-propP(2))*SCmI(6); %orbiter inert mass
-fprintf("\n\t\tSpacecraft mass %6.2f\n\t\tpropellant mass %6.2f\n\t\tinert mass %6.2f\n",SCmI(5),SCmI(6),SCmI(7));
+SCmI(8)=sum(SCmI(6:7)); %orbiter total mass
+fprintf("Propulsion System Parameters\n\t Payload mass: %6.2f kg\n\t Propellant mass: %6.2f kg \n\t Inert mass: %5.2f kg\n\t Total spacecraft mass: %6.2f kg\n",SCmI(5),SCmI(6),SCmI(7),SCmI(8));
 
 %% Launch craft sizing
 % Once mass is determined, investigate commercial launch options. If our
 % craft is too heavy, figure out the fuel and mass for a two or three stage
 % to orbit rocket and determine the cost.
 
+%disp(vinf2); %temporary for checking things
 
 %% Price of mission
 % figure out price of components based on generic rates or specific
-% component information. Provide total cost and a breakdown by system, also
-% include the total time of mission costs
-
+% component information. Don't think we actually need this, but it's easy.
+cost=0.2*SCmI(8)+20*(17+190/365.2425)+1230; %cost in M of dollars, the 1230 is for a Saturn V
+fprintf("Total mission cost: $%4.3f Billion\n",cost/1000);
 
 %% Functions
 % Organized here for ease of editing
@@ -324,7 +326,7 @@ function [Tl,Tn] = Ltime(R,H,mu,th0)
 % time in light and night for solar panel calculations
 % inputs: R=planet radius [km] H=orbit altitude [km], 
 % mu=planet mu [km^3/s^2], th0=eclipse angle (max use 0)
-Lfrac=(pi()+2*asin((R*acos(R./(R+H)))./((R+H)*cosd(th0))))./(2*pi()); %fraction of time in light
+Lfrac=(pi()+2*asin((R*tan(acos(R./(R+H))))./((R+H)*cosd(th0))))./(2*pi()); %fraction of time in light
 Tl=Lfrac.*(2*(R+H).^(3/2)*pi())/sqrt(mu); %time in light
 Tn=(1-Lfrac).*(2*(R+H).^(3/2)*pi())/sqrt(mu); %time in night
 end
