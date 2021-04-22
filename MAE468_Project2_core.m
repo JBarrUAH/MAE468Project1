@@ -19,8 +19,6 @@ clc
 
 %% Orbital Variable Initialization
 % Includes orbital elements, locations, constants, anonymous functions, etc
-mu=1; %canonical mu, AU^3/TU^2 heliocentric or DU^3/TU^2 geocentric
-% a,e,i,OMEGA,omega,theta (AU,unitless,deg,deg,deg,deg)
 oeE=[1.000000,0.01671,0.00005,-11.26064,114.20783,-2.48284]; %Earth
 oeM=[1.523662,0.093412,1.85061,49.57854,286.4623,19.41248]; %Mars
 % a,e,i,O,w,th is naming convention used in functions
@@ -29,9 +27,7 @@ ToFfun=@(tt) etime(datevec(tt),datevec(t0))/5.0226757e6; %anonymous function for
 zg=18; %initial guess for z (for Gauss Orbit). Should be within the range of +-(2pi)^2 
 % NOTE: Use 18 if elliptical, 0 if parabolic, -18 if hyperbolic
 vCAtoM=@(v) v*149597870.7/5.0226757e6; %km/s (AU/TU sun to km/s)
-
 muM=4.2828e4; %Mars mu, km^3/s^2
-
 [rxyzE0,vxyzE0]=OEtoXYZ(oeE(1),oeE(2),oeE(3),oeE(4),oeE(5),oeE(6),1);
 [rxyzM0,vxyzM0]=OEtoXYZ(oeM(1),oeM(2),oeM(3),oeM(4),oeM(5),oeM(6),1);
 %% Tasks a and b
@@ -46,8 +42,8 @@ disp("Mars arrival date: "+char(tM2));
 fprintf("\n---TASK b---\n");
 [rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(tE1),1); %obtaining Earth vectors at departure
 [rxyzM2,vxyzM2]=uToF(rxyzM0,vxyzM0,ToFfun(tM2),1); %obtaining Mars vectors at arrival
-fprintf("Earth at Departure\n\t Position: %5.4f, %5.4f, %5.4f AU\n\t Velocity: %5.4f, %5.4f, %5.4f AU/TU",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3));
-fprintf("\nMars at Arrival\n\t Position: %5.4f, %5.4f, %5.4f AU\n\t Velocity: %5.4f, %5.4f, %5.4f AU/TU\n",rxyzM2(1),rxyzM2(2),rxyzM2(3),vxyzM2(1),vxyzM2(2),vxyzM2(3));
+fprintf("Earth at Departure\n\t Position: %5.4f, %5.4f, %5.4f AU\n\t Velocity: %5.4f, %5.4f, %5.4f AU/TU\n",rxyzE1(1),rxyzE1(2),rxyzE1(3),vxyzE1(1),vxyzE1(2),vxyzE1(3));
+fprintf("Mars at Arrival\n\t Position: %5.4f, %5.4f, %5.4f AU\n\t Velocity: %5.4f, %5.4f, %5.4f AU/TU\n",rxyzM2(1),rxyzM2(2),rxyzM2(3),vxyzM2(1),vxyzM2(2),vxyzM2(3));
 
 %% Task c
 % Spacecraft interplanetary transfer parameters
@@ -56,18 +52,18 @@ fprintf("\n---TASK c---\n");
 [oeSC1(1),oeSC1(2),oeSC1(3),oeSC1(4),oeSC1(5),oeSC1(6)]=XYZtoOE(rxyzE1,vxyz1,1); %Spacecraft departure orbital elements
 [~,~,~,~,~,oeSC2]=XYZtoOE(rxyzM2,vxyz2,1); %Spacecraft arrival true anomaly
 fprintf("Spacecraft RoI Orbital Elements\n\t Eccentricity: %5.3f\n\t Semi-major axis: %5.3f AU\n\t Inclination: %5.3f degrees\n\t RAAN: %5.3f degrees\n\t Argument of periapsis: %5.3f degrees\n\t Departure true anomaly: %5.3f degrees\n\t Arrival true anomaly: %5.3f degrees\n",oeSC1(1),oeSC1(2),oeSC1(3),oeSC1(4),oeSC1(5),oeSC1(6),oeSC2);
-fprintf("Spacecraft at Earth RoI departure\n\t Heliocentric Velocity: %5.4f, %5.4f, %5.4f AU/TU",vxyz1(1),vxyz1(2),vxyz1(3));
-fprintf("\nSpacecraft at Mars RoI Arrival\n\t Heliocentric Velocity: %5.4f, %5.4f, %5.4f AU/TU\n",vxyz2(1),vxyz2(2),vxyz2(3));
+fprintf("Spacecraft at Earth RoI departure\n\t Heliocentric Velocity: %5.4f, %5.4f, %5.4f AU/TU\n",vxyz1(1),vxyz1(2),vxyz1(3));
+fprintf("Spacecraft at Mars RoI Arrival\n\t Heliocentric Velocity: %5.4f, %5.4f, %5.4f AU/TU\n",vxyz2(1),vxyz2(2),vxyz2(3));
 
 %% Task d
 % Find delta v and escape velocity for the trajectory assuming Earth
 % launch and 400km circular Mars parking orbit
-fprintf("\n---TASK d---");
+fprintf("\n---TASK d---\n");
 alt=400; %spacecraft parking orbit altitude in km
 vinf1=vCAtoM(norm(vxyz1-vxyzE1)); %finding vinf at Earth in km/s
 vinf2=vCAtoM(norm(vxyz2-vxyzM2)); %finding vinf at Mars in km/s
 dvM=sqrt(muM/(3389.5+alt))-sqrt(2*(vinf2^2/2+muM/(3389.5+alt)));%finding dv for Mars 400km altitude parking orbit
-fprintf("\nMars vinf to parking orbit dv: %5.4f km/s\n",abs(dvM)); %displaying delta v to get Mars parking orbit
+fprintf("Mars vinf to parking orbit dv: %5.4f km/s\n",abs(dvM)); %displaying delta v to get Mars parking orbit
 
 %% Transmitter sizing
 % Size transmitter based on longest distance, data transfer with 2kbps
@@ -145,8 +141,8 @@ fprintf("ADCS System Parameters\n\t Stored momentum for 50 orbits: %5.2f N*m*s\n
 
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
-% engine for Mars arrival burn, based on the orbiter (payload) size,
-% determine inert mass and fuel required.
+% engine for Mars arrival burn. Based on the orbiter size, determine
+% inert mass and fuel required.
 propP=[exp(abs(dvM*1000)/(9.80665*223)),0.3]; %propulsion parameters. [MR,IMF] finding orbiter worst case MR based on Mars injection orbit with MR-104H thrusters
 SCmI(5)=SCmI(1)+mTsys(2)+SolarArray(2)+ADCS(3); %total spacecraft mass
 SCmI(6)=SCmI(5)*(propP(1)-1)*(1-propP(2))/(1-propP(1)*propP(2)); %orbiter propellant mass
@@ -157,12 +153,12 @@ fprintf("Propulsion System Parameters\n\t Payload mass: %6.2f kg\n\t Propellant 
 %% Launch craft sizing
 % Once mass is determined, investigate commercial launch options. If our
 % craft is too heavy, figure out the fuel and mass for a two or three stage
-% to orbit rocket and determine the cost.
-fprintf("Launch Craft Selection\n\t Based on spacecraft mass and desired transfer orbit, a Falcon Heavy will\n\t be used to obtain the required Earth escape velocity of %5.3f km/s\n",vinf1);
+% to orbit rocket.
+fprintf("Launch Craft Selection\n\t Based on spacecraft mass and desired transfer orbit, a Falcon Heavy will\n\t be used to obtain the required Earth hyperbolic Vinf of %5.3f km/s\n",vinf1);
 
 %% Price of mission
-% figure out price of components based on generic rates or specific
-% component information. Don't think we actually need this, but it's easy.
+% Determine price of mission based on generic rates or specific
+% component information.
 cost=0.2*SCmI(8)+20*(17+190/365.2425)+270; %cost in M of dollars
 fprintf("Total mission cost: $%4.3f Billion\n",cost/1000);
 
@@ -332,12 +328,6 @@ end
 function [Tg] = Tgrav(Iz,Iy,R,mu,th)
 Tg=3/2*mu/R^3*abs(Iz-Iy)*sind(2*th);
 end
-
-% function [Ts] = Tsolar(Gs,As,x,q,i)
-% % Assumes in metric units, not canonical. i in degrees
-% Fs=Gs/299792458*As*(1+q)*cosd(i); %solar pressure
-% Ts=Fs*x; %solar torque
-% end
 
 function [Ft,mp] = Mdump(h,L,t,isp)
 % Thruster sizing and propellant use for momentum dump
