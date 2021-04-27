@@ -86,7 +86,7 @@ fprintf("Transmitter parameters\n\t Diameter: %3.1f m\n\t Efficiency: %3.2f\n\t 
 % Use calculated transmitter power consumption with Cassini instrument
 % consumption and plug into planetary orbiter total power equation with 30% subsystem margin to determine
 % solar panel sizing (assume Mars circular orbit for now). Also account for system degradation of 17yr mission.
-% Find battery size accounting for degradation and around 6000 power cycles life
+% Find battery size accounting for degradation and appropriate power cycle life
 [TlM,TnM]=Ltime(Mdist(2),alt,muM,0); %assuming th0=0 for most conservative estimate [time in light,time in night] in seconds
 Pln=[sum(CasIns(:,1))+xmitt(4),sum(CasIns(:,1))]; %worst case payload power summation [power in light,power in night] both in W
 Pln=Pln+1.3*((332.93*log(max(Pln))-1046.6)-max(Pln)); %total orbiter power consumption [power in light,power in night] both in W
@@ -137,7 +137,7 @@ SCdstrb=Tgrav(SCmI(4),SCmI(3),Mdist(2)+alt,muM,5);%symmetric solar panels, so on
 SCdstrb(2)=SCdstrb(1)*(TlM+TnM)/4*0.707; %orbit total disturbance in N*m*s
 [ADCS(1),ADCS(2)]=Mdump(50*SCdstrb(2),SCdim(1),30,202); %dumping stored momentum, some manual iteration required to find parameters to keep required thrust under 1N
 ADCS(3)=4*(8.5)+8*(0.37)+(ADCS(2)*((60*60*24*365.2425*17)/(TlM+TnM))/50); %ADCS mass, accounts for 4 reaction wheels, 8 thrusters, and all necessary fuel
-fprintf("ADCS System Parameters\n\t Stored momentum for 50 orbits: %5.2f N*m*s\n\t Thrust for 30 second momentum dump: %4.2f N\n\t Fuel required for mission life: %5.3f kg\n\t ADCS system mass: %5.2f kg\n",50*SCdstrb(2),ADCS(1),ADCS(2)*((60*60*24*365.2425*17)/(TlM+TnM))/50,ADCS(3));
+fprintf("ADCS System Parameters\n\t Stored momentum for 50 orbits: %5.2f N*m*s\n\t Thrust for 30 second momentum dump: %4.2f N\n\t Fuel required for mission life: %4.2f kg\n\t ADCS system mass: %5.2f kg\n",50*SCdstrb(2),ADCS(1),ADCS(2)*((60*60*24*365.2425*17)/(TlM+TnM))/50,ADCS(3));
 
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
