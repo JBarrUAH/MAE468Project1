@@ -133,12 +133,12 @@ SCmI(2)=2/5*SCmI(1)*SCdim(1)^2+(0.05^2+2^2)/12*SolarArray(2)+((SCdim(1)-0.25)^2+
 SCmI(3)=2/5*SCmI(1)*SCdim(1)^2+((SCdim(1)+0.25+SolarArray(1)/8)^2+((SolarArray(1)/4)^2+0.05^2)/12)*SolarArray(2)+((SCdim(1)-0.25)^2+(3^2+0.5^2)/12)*mTsys(2); %y axis moment
 SCmI(4)=2/5*SCmI(1)*SCdim(1)^2+((SCdim(1)+0.25+SolarArray(1)/8)^2+((SolarArray(1)/4)^2+2^2)/12)*SolarArray(2)+(3^2+(max(Arad)*0.05)^2)/12*mTsys(2); %z axis moment
 
-orbits=300; %variable to allow simple changing of orbits per momentum dump
+orbits=100; %variable to allow simple changing of orbits per momentum dump
 SCdstrb=Tgrav(SCmI(4),SCmI(3),Mdist(2)+alt,muM,5);%symmetric solar panels, so only grav-gradient torque for 5deg attitude
 SCdstrb(2)=SCdstrb(1)*(TlM+TnM)/4*0.707; %orbit total disturbance in N*m*s
-[ADCS(1),ADCS(2)]=Mdump(orbits*SCdstrb(2),SCdim(1),8,202); %dumping stored momentum, some manual iteration required to find parameters to keep required thrust under 1N
+[ADCS(1),ADCS(2)]=Mdump(orbits*SCdstrb(2),SCdim(1),10,202); %dumping stored momentum, some manual iteration required to find parameters to keep required thrust under 1N
 ADCS(3)=4*(6)+8*(0.37)+(ADCS(2)/orbits*((60*60*24*365.2425*17)/(TlM+TnM))); %ADCS mass, accounts for 4 reaction wheels, 8 thrusters, and all necessary fuel
-fprintf("ADCS System Parameters\n\t Stored momentum for %2.0f orbits: %5.2f N*m*s\n\t Thrust for 8 second momentum dump: %4.2f N\n\t Fuel required for mission life: %4.2f kg\n\t ADCS system mass: %5.2f kg\n",orbits,orbits*SCdstrb(2),ADCS(1),ADCS(2)/orbits*((60*60*24*365.2425*17)/(TlM+TnM)),ADCS(3));
+fprintf("ADCS System Parameters\n\t Stored momentum for %2.0f orbits: %5.2f N*m*s\n\t Thrust for 10 second momentum dump: %4.2f N\n\t Fuel required for mission life: %4.2f kg\n\t ADCS system mass: %5.2f kg\n",orbits,orbits*SCdstrb(2),ADCS(1),ADCS(2)/orbits*((60*60*24*365.2425*17)/(TlM+TnM)),ADCS(3));
 
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
