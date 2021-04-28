@@ -138,7 +138,7 @@ SCdstrb=Tgrav(SCmI(4),SCmI(3),Mdist(2)+alt,muM,5);%symmetric solar panels, so on
 SCdstrb(2)=SCdstrb(1)*(TlM+TnM)/4*0.707; %orbit total disturbance in N*m*s
 [ADCS(1),ADCS(2)]=Mdump(orbits*SCdstrb(2),SCdim(1),8,202); %dumping stored momentum, some manual iteration required to find parameters to keep required thrust under 1N
 ADCS(3)=4*(6)+8*(0.37)+(ADCS(2)/orbits*((60*60*24*365.2425*17)/(TlM+TnM))); %ADCS mass, accounts for 4 reaction wheels, 8 thrusters, and all necessary fuel
-fprintf("ADCS System Parameters\n\t Stored momentum for %3.0f orbits: %5.2f N*m*s\n\t Thrust for 8 second momentum dump: %4.2f N\n\t Fuel required for mission life: %4.2f kg\n\t ADCS system mass: %5.2f kg\n",orbits,orbits*SCdstrb(2),ADCS(1),ADCS(2)/orbits*((60*60*24*365.2425*17)/(TlM+TnM)),ADCS(3));
+fprintf("ADCS System Parameters\n\t Stored momentum for %2.0f orbits: %5.2f N*m*s\n\t Thrust for 8 second momentum dump: %4.2f N\n\t Fuel required for mission life: %4.2f kg\n\t ADCS system mass: %5.2f kg\n",orbits,orbits*SCdstrb(2),ADCS(1),ADCS(2)/orbits*((60*60*24*365.2425*17)/(TlM+TnM)),ADCS(3));
 
 %% Propulsion sizing
 % Select engine parameters for an efficient but powerful enough chemical
