@@ -34,10 +34,10 @@ muM=4.2828e4; %Mars mu, km^3/s^2
 % Obtains positions and velocities of Earth and Mars with a 190 day
 % interval launching on 17 Sep 2022
 fprintf("---TASK a---\n");
-tE1=datetime(2022,9,17,15,0,0); %setting departure date, 17 Sep 2022 at 1500hrs UTC was determined to be optimal through manual iteration
+tE1=datetime(2022,9,17,15,0,0); %setting departure date, 17 Sep 2022 at 1500hrs UTC was determined to be optimal for a 190 day transfer through manual iteration
 tM2=tE1+days(190); %adding 190 days to find the future Mars position
-disp("Earth launch date: "+char(tE1));
-disp("Mars arrival date: "+char(tM2));
+disp("Earth launch date: "+char(tE1)+" UTC");
+disp("Mars arrival date: "+char(tM2)+" UTC");
 
 fprintf("\n---TASK b---\n");
 [rxyzE1,vxyzE1]=uToF(rxyzE0,vxyzE0,ToFfun(tE1),1); %obtaining Earth vectors at departure
@@ -51,7 +51,7 @@ fprintf("\n---TASK c---\n");
 [vxyz1,vxyz2]=Gorb(rxyzE1,rxyzM2,ToFfun(t0+days(190)),1,zg); %spacecraft heliocentric departure and arrival velocities
 [oeSC1(1),oeSC1(2),oeSC1(3),oeSC1(4),oeSC1(5),oeSC1(6)]=XYZtoOE(rxyzE1,vxyz1,1); %Spacecraft departure orbital elements
 [~,~,~,~,~,oeSC2]=XYZtoOE(rxyzM2,vxyz2,1); %Spacecraft arrival true anomaly
-fprintf("Spacecraft RoI Orbital Elements\n\t Eccentricity: %5.3f\n\t Semi-major axis: %5.3f AU\n\t Inclination: %5.3f degrees\n\t RAAN: %5.3f degrees\n\t Argument of periapsis: %5.3f degrees\n\t Departure true anomaly: %5.3f degrees\n\t Arrival true anomaly: %5.3f degrees\n",oeSC1(1),oeSC1(2),oeSC1(3),oeSC1(4),oeSC1(5),oeSC1(6),oeSC2);
+fprintf("Spacecraft Heliocentric RoI Orbital Elements\n\t Eccentricity: %5.3f\n\t Semi-major axis: %5.3f AU\n\t Inclination: %5.3f degrees\n\t RAAN: %5.3f degrees\n\t Argument of periapsis: %5.3f degrees\n\t Departure true anomaly: %5.3f degrees\n\t Arrival true anomaly: %5.3f degrees\n",oeSC1(1),oeSC1(2),oeSC1(3),oeSC1(4),oeSC1(5),oeSC1(6),oeSC2);
 fprintf("Spacecraft at Earth RoI departure\n\t Heliocentric Velocity: %5.4f, %5.4f, %5.4f AU/TU\n",vxyz1(1),vxyz1(2),vxyz1(3));
 fprintf("Spacecraft at Mars RoI Arrival\n\t Heliocentric Velocity: %5.4f, %5.4f, %5.4f AU/TU\n",vxyz2(1),vxyz2(2),vxyz2(3));
 
@@ -128,7 +128,7 @@ fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Ret
 % deployed solar panels (using their mass). Determine grav-gradient and solar disturbances and size
 % reaction wheels for a reasonable number of orbits maintaining within 5deg, then size thrusters.
 % Figure out propellant mass for mission life with thrusters, then add margin.
-SCmI=[sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1)+60,0,0,0,0]; %initializing spacecraft sphere mass and mass moments of inertia [sphere mass,xmoment,ymoment,zmoment,total mass]
+SCmI=[sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1)+60,0,0,0]; %initializing spacecraft sphere mass and mass moments of inertia [sphere mass,xmoment,ymoment,zmoment]
 %deployed radiator mass moments of inertia
 SCmI(2)=2/5*SCmI(1)*SCdim(1)^2+((SCdim(1)+0.25+SolarArray(1)/8)^2+((SolarArray(1)/4)^2+0.05^2)/12)*SolarArray(2)+((SCdim(1)+max(Arad)/12)^2+(3^2+(max(Arad)/6)^2)/12)*mTsys(2); %x axis moment
 SCmI(3)=2/5*SCmI(1)*SCdim(1)^2+(0.05^2+2^2)/12*SolarArray(2)+((SCdim(1)+max(Arad)/12)^2+(0.15^2+(max(Arad)/6)^2)/12)*mTsys(2); %y axis moment
