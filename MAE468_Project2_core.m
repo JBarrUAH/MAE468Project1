@@ -5,7 +5,7 @@
 %% Notes
 %source used for some constants: http://www.dept.aoe.vt.edu/~lutze/AOE2104/consts.pdf
 %source for Mars and Earth constants https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
-%ADCS reaction wheel source, using HR 12-25 https://satcatalog.com/datasheet/Honeywell%20-%20HR12-25.pdf
+%ADCS reaction wheel source, using HR 12-12 https://satcatalog.com/datasheet/Honeywell%20-%20HR12-25.pdf
 %ADCS thruster source, using MR-103J https://www.rocket.com/sites/default/files/documents/In-Space%20Data%20Sheets%204.8.20.pdf
 %Launch Vehicle source, using Falcon Heavy https://www.spacelaunchreport.com/falconH.html
 %Launch Vehicle cost, Falcon Heavy https://www.faa.gov/about/office_org/headquarters_offices/ast/media/2018_ast_compendium.pdf
