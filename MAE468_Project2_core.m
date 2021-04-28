@@ -73,7 +73,7 @@ fprintf("\n---TASK e---\n");
 CasIns=[11.83,14.46,32;55.9,57.8,365;3.1,3,3.6;27.7,9.25,1.5]; %Cassini Instrument parameters [W,kg,max kb/s]
 DSN=[70,0.7,21]; %DSN [diameter,efficiency,noise temperature]
 comm=[13.8e9,100e6]; %communications [frequency, bandwidth] in Hz
-Mdist=[401e9,3389.5,206.617e6,249.229e6]; %Mars distance information [max dist from Earth m, planet radius m, perihelion km, aphelion km]
+Mdist=[401e9,3389.5,227.923e6]; %Mars distance information [max dist from Earth m, planet radius m, average orbit distance km]
 xmitt=[2.5,0.55,0,0]; %initializing transmitter information. [diameter m, efficiency,mass kg,power W]
 Gain=@(D,f,n) -159.6+10*log10(n)+20*log10(D)+20*log10(f); %antenna gain in dB
 Tloss=@(x,f) -147.6+20*log10(x)+20*log10(f)+1;%total path and other loss in dB
@@ -93,7 +93,7 @@ Pln=Pln+1.3*((332.93*log(max(Pln))-1046.6)-max(Pln)); %total orbiter power consu
 
 Xln=[.8,.6]; %peak power transfer efficiencies light and night
 PsaM=((Pln(1)*TlM)/Xln(1)+(Pln(2)*TnM)/Xln(2))/TlM; %solar array required power
-PeolM=301*(149.596e6/Mdist(4))^2*0.77*cosd(0)*(1-0.005)^17; %end of life unit area power [W/m^2] for multijunction over 17 years
+PeolM=301*(149.596e6/Mdist(3))^2*0.77*cosd(0)*(1-0.005)^17; %end of life unit area power [W/m^2] for multijunction over 17 years
 SolarArray=[PsaM/PeolM,0,0]; %initializing solar array information [array area m,array mass kg, battery mass kg]
 SolarArray(2)=SolarArray(1)*4.0; %solar array mass in kg based on required area and rigid fold-out panels
 SolarArray(3)=((Pln(2)*TnM)/(0.40*.97))/(55*60*60); %determining required battery mass based on night power consumption, 40%DoD, 97% transfer efficiency, and SED of 55W-hr/kg
@@ -113,7 +113,7 @@ SCdim=[1.55,0,0]; %initializing spacecraft dimensions [radius m,area in m^2,area
 SCdim=[SCdim(1),pi()*SCdim(1)^2,4*pi()*SCdim(1)^2]; %calculating the areas
 ae=[0.30,0.03,0.8,0.78,0.17,0.92]; %surface radiation factors [SCgold abs,SCgold emis,solar panel abs,radiator emis,SCpaint abs,SCpaint emis] 
 %using vapor deposited gold SC coating and 5mil alumized teflon radiators with some of the spacecraft painted white with Z93 paint
-cfrac=0.249; %fraction of spacecraft surface that is painted white instead of gold coated
+cfrac=0.216; %fraction of spacecraft surface that is painted white instead of gold coated
 
 Qsolalb=(1+albM)*GsM*((ae(5)*cfrac+ae(1)*(1-cfrac))*SCdim(2)+ae(3)*SolarArray(1)); %total solar Qin including albedo and solar panels [max,min] in W
 Qir=qMir*(SCdim(2)+SolarArray(1)); %planet IR Qin [max,min] in W
@@ -140,7 +140,7 @@ SCmI(7)=2/5*SCmI(1)*SCdim(1)^2+((SCdim(1)+0.25+SolarArray(1)/8)^2+((SolarArray(1
 
 SCdstrb=(TlM/(TlM+TnM))*Tgrav(SCmI(4),SCmI(3),Mdist(2)+alt,muM,5)+(TnM/(TlM+TnM))*Tgrav(SCmI(7),SCmI(6),Mdist(2)+alt,muM,5);%symmetric solar panels, so only grav-gradient torque for 5deg attitude. Accounts for time deployed and retracted per orbit
 SCdstrb(2)=SCdstrb(1)*(TlM+TnM)/4*0.707; %orbit total disturbance in N*m*s
-orbits=22; %variable to allow simple changing of orbits per momentum dump
+orbits=60; %variable to allow simple changing of orbits per momentum dump
 [ADCS(1),ADCS(2)]=Mdump(orbits*SCdstrb(2),SCdim(1),8,202); %dumping stored momentum, some manual iteration required to find parameters to keep required thrust under 1N
 ADCS(3)=4*(6)+8*(0.37)+(ADCS(2)/orbits*((60*60*24*365.2425*17)/(TlM+TnM))); %ADCS mass, accounts for 4 reaction wheels, 8 thrusters, and all necessary fuel
 fprintf("ADCS System Parameters\n\t Stored momentum for %2.0f orbits: %5.2f N*m*s\n\t Thrust for 8 second momentum dump: %4.2f N\n\t Fuel required for mission life: %4.2f kg\n\t ADCS mass: %5.2f kg\n",orbits,orbits*SCdstrb(2),ADCS(1),ADCS(2)/orbits*((60*60*24*365.2425*17)/(TlM+TnM)),ADCS(3));
