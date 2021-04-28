@@ -129,8 +129,8 @@ fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Ret
 % reaction wheels for a reasonable number of orbits maintaining within 5deg, then size thrusters.
 % Figure out propellant mass for mission life with thrusters, then add margin.
 SCmI=[sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1)+60,0,0,0,0]; %initializing spacecraft sphere mass and mass moments of inertia [sphere mass,xmoment,ymoment,zmoment,total mass]
-SCmI(2)=2/5*SCmI(1)*SCdim(1)^2+(0.05^2+2^2)/12*SolarArray(2)+((SCdim(1)+max(Arad)/12)^2+(0.15^2+(max(Arad)/6)^2)/12)*mTsys(2); %x axis moment, see paper for assumptions
-SCmI(3)=2/5*SCmI(1)*SCdim(1)^2+((SCdim(1)+0.25+SolarArray(1)/8)^2+((SolarArray(1)/4)^2+0.05^2)/12)*SolarArray(2)+((SCdim(1)+max(Arad)/12)^2+(3^2+(max(Arad)/6)^2)/12)*mTsys(2); %y axis moment
+SCmI(2)=2/5*SCmI(1)*SCdim(1)^2+((SCdim(1)+0.25+SolarArray(1)/8)^2+((SolarArray(1)/4)^2+0.05^2)/12)*SolarArray(2)+((SCdim(1)+max(Arad)/12)^2+(3^2+(max(Arad)/6)^2)/12)*mTsys(2); %x axis moment
+SCmI(3)=2/5*SCmI(1)*SCdim(1)^2+(0.05^2+2^2)/12*SolarArray(2)+((SCdim(1)+max(Arad)/12)^2+(0.15^2+(max(Arad)/6)^2)/12)*mTsys(2); %y axis moment, see paper for assumptions
 SCmI(4)=2/5*SCmI(1)*SCdim(1)^2+((SCdim(1)+0.25+SolarArray(1)/8)^2+((SolarArray(1)/4)^2+2^2)/12)*SolarArray(2)+(0.15^2+3^2)/12*mTsys(2); %z axis moment
 
 orbits=100; %variable to allow simple changing of orbits per momentum dump
