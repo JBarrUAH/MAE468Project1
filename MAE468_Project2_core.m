@@ -129,9 +129,14 @@ fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Ret
 % reaction wheels for a reasonable number of orbits maintaining within 5deg, then size thrusters.
 % Figure out propellant mass for mission life with thrusters, then add margin.
 SCmI=[sum(CasIns(:,2))+xmitt(3)+SolarArray(3)+mTsys(1)+60,0,0,0,0]; %initializing spacecraft sphere mass and mass moments of inertia [sphere mass,xmoment,ymoment,zmoment,total mass]
+%deployed radiator mass moments of inertia
 SCmI(2)=2/5*SCmI(1)*SCdim(1)^2+((SCdim(1)+0.25+SolarArray(1)/8)^2+((SolarArray(1)/4)^2+0.05^2)/12)*SolarArray(2)+((SCdim(1)+max(Arad)/12)^2+(3^2+(max(Arad)/6)^2)/12)*mTsys(2); %x axis moment
 SCmI(3)=2/5*SCmI(1)*SCdim(1)^2+(0.05^2+2^2)/12*SolarArray(2)+((SCdim(1)+max(Arad)/12)^2+(0.15^2+(max(Arad)/6)^2)/12)*mTsys(2); %y axis moment, see paper for assumptions
 SCmI(4)=2/5*SCmI(1)*SCdim(1)^2+((SCdim(1)+0.25+SolarArray(1)/8)^2+((SolarArray(1)/4)^2+2^2)/12)*SolarArray(2)+(0.15^2+3^2)/12*mTsys(2); %z axis moment
+%retracted radiator mass moments of inertia
+SCmI(5)=2/5*SCmI(1)*SCdim(1)^2+((SCdim(1)+0.25+SolarArray(1)/8)^2+((SolarArray(1)/4)^2+0.05^2)/12)*SolarArray(2)+((SCdim(1)-0.25)^2+(3^2+0.5^2)/12)*mTsys(2); %x axis moment
+SCmI(6)=2/5*SCmI(1)*SCdim(1)^2+(0.05^2+2^2)/12*SolarArray(2)+((SCdim(1)-0.25)^2+(0.5^2+(max(Arad)*0.05)^2)/12)*mTsys(2); %y axis moment, see paper for assumptions
+SCmI(7)=2/5*SCmI(1)*SCdim(1)^2+((SCdim(1)+0.25+SolarArray(1)/8)^2+((SolarArray(1)/4)^2+2^2)/12)*SolarArray(2)+(3^2+(max(Arad)*0.05)^2)/12*mTsys(2); %z axis moment
 
 orbits=100; %variable to allow simple changing of orbits per momentum dump
 SCdstrb=Tgrav(SCmI(4),SCmI(3),Mdist(2)+alt,muM,5);%symmetric solar panels, so only grav-gradient torque for 5deg attitude
@@ -145,11 +150,11 @@ fprintf("ADCS System Parameters\n\t Stored momentum for %2.0f orbits: %5.2f N*m*
 % engine for Mars arrival burn. Based on the orbiter size, determine
 % inert mass and fuel required.
 propP=[exp(abs(dvM*1000)/(9.80665*223)),0.3]; %propulsion parameters. [MR,IMF] finding orbiter worst case MR based on Mars injection orbit with MR-104H thrusters
-SCmI(5)=SCmI(1)+mTsys(2)+SolarArray(2)+ADCS(3); %total spacecraft mass
-SCmI(6)=SCmI(5)*(propP(1)-1)*(1-propP(2))/(1-propP(1)*propP(2)); %orbiter propellant mass
-SCmI(7)=propP(2)/(1-propP(2))*SCmI(6); %orbiter inert mass
-SCmI(8)=sum(SCmI(6:7)); %orbiter total mass
-fprintf("Propulsion System Parameters\n\t Payload mass: %6.2f kg\n\t Propellant mass: %6.2f kg \n\t Inert mass: %5.2f kg\n\t Total spacecraft mass: %6.2f kg\n",SCmI(5),SCmI(6),SCmI(7),SCmI(8));
+SCmI(8)=SCmI(1)+mTsys(2)+SolarArray(2)+ADCS(3); %total spacecraft mass
+SCmI(9)=SCmI(8)*(propP(1)-1)*(1-propP(2))/(1-propP(1)*propP(2)); %orbiter propellant mass
+SCmI(10)=propP(2)/(1-propP(2))*SCmI(6); %orbiter inert mass
+SCmI(11)=sum(SCmI(9:10)); %orbiter total mass
+fprintf("Propulsion System Parameters\n\t Payload mass: %6.2f kg\n\t Propellant mass: %6.2f kg \n\t Inert mass: %5.2f kg\n\t Total spacecraft mass: %6.2f kg\n",SCmI(8),SCmI(9),SCmI(10),SCmI(11));
 
 %% Launch craft sizing
 % Once mass is determined, investigate commercial launch options. If our
@@ -160,7 +165,7 @@ fprintf("Launch Craft Selection\n\t Based on spacecraft mass and desired transfe
 %% Price of mission
 % Determine price of mission based on generic rates or specific
 % component information.
-cost=0.2*SCmI(8)+20*(17+190/365.2425)+270; %cost in M of dollars
+cost=0.2*SCmI(11)+20*(17+190/365.2425)+270; %cost in M of dollars
 fprintf("Total mission cost: $%4.3f Billion\n",cost/1000);
 
 %% Functions
