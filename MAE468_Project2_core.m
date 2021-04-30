@@ -80,7 +80,7 @@ Tloss=@(x,f) -147.6+20*log10(x)+20*log10(f)+1;%total path and other loss in dB
 
 xmitt(3)=2.89*xmitt(1)^2+6.11*xmitt(1)-2.59; %calculating mass of transmitter in kg
 xmitt(4)=10^((14.7-Gain(xmitt(1),comm(1),xmitt(2))-Gain(DSN(1),comm(1),DSN(2))+Tloss(Mdist(1),comm(1))+10*log10(1e3*sum(CasIns(:,3))+2000)-228.6+10*log10(DSN(3)))/10); %transmitter power in W
-fprintf("Transmitter parameters\n\t Diameter: %3.1f m\n\t Efficiency: %3.2f\n\t Max power consumption: %4.2f W\n\t Mass: %4.2f kg\n",xmitt(1),xmitt(2),xmitt(4),xmitt(3));
+fprintf("Transmitter parameters\n\t Diameter: %3.1f m\n\t Efficiency: %3.2f\n\t Power consumption: %4.2f W\n\t Mass: %4.2f kg\n",xmitt(1),xmitt(2),xmitt(4),xmitt(3));
 
 %% Power system sizing
 % Use calculated transmitter power consumption with Cassini instrument
@@ -97,7 +97,7 @@ PeolM=301*(149.596e6/Mdist(3))^2*0.77*cosd(0)*(1-0.005)^17; %end of life unit ar
 SolarArray=[PsaM/PeolM,0,0]; %initializing solar array information [array area m,array mass kg, battery mass kg]
 SolarArray(2)=SolarArray(1)*4.0; %solar array mass in kg based on required area and rigid fold-out panels
 SolarArray(3)=((Pln(2)*TnM)/(0.40*.97))/(55*60*60); %determining required battery mass based on night power consumption, 40%DoD, 97% transfer efficiency, and SED of 55W-hr/kg
-fprintf("Power System Parameters\n\t Panel area: %4.2f m\n\t Array mass: %4.2f kg\n\t Battery mass: %4.2f kg\n",SolarArray(1),SolarArray(2),SolarArray(3));
+fprintf("Power System Parameters\n\t Maximum power consumption: %4.2f W\n\t Panel area: %4.2f m\n\t Array mass: %4.2f kg\n\t Battery capacity: %4.2f W*hr\n\t Battery mass: %4.2f kg\n",max(Pln),SolarArray(1),SolarArray(2),SolarArray(3)*55,SolarArray(3));
 
 %% Thermal system sizing
 % Size thermal system based off of solar panels, arbitrary reasonable spacecraft size,
@@ -117,7 +117,6 @@ cfrac=0.216; %fraction of spacecraft surface that is painted white instead of go
 
 Qsolalb=(1+albM)*GsM*((ae(5)*cfrac+ae(1)*(1-cfrac))*SCdim(2)+ae(3)*SolarArray(1)); %total solar Qin including albedo and solar panels [max,min] in W
 Qir=qMir*(SCdim(2)+SolarArray(1)); %planet IR Qin [max,min] in W
-%Temps=[((Qsolalb+max(Qir)+max(Qwaste))/(SCdim(3)*ae(2)*sfb))^(1/4),((min(Qir)+min(Qwaste))/(SCdim(3)*ae(2)*sfb))^(1/4)]; %SC temperatures without radiator [max,min] both in K
 Arad=[(Qsolalb+max(Qir)+max(Qwaste)-SCdim(3)*(ae(6)*cfrac+ae(2)*(1-cfrac))*sfb*max(Tlim)^4)/(ae(4)*sfb*max(Tlim)^4),(min(Qir)+min(Qwaste)-SCdim(3)*(ae(6)*cfrac+ae(2)*(1-cfrac))*sfb*min(Tlim)^4)/(ae(4)*sfb*min(Tlim)^4)]; %deployed radiator sizing for hot and cold cases
 mTsys=[(0.24*cfrac+19.3e3*100e-9*(1-cfrac))*SCdim(3),max(Arad)*2.707]; %thermal system masses [mass of paint and gold coating kg,mass of radiators kg]
 fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Retracted radiator area: %4.2f m^2\n\t Thermal system mass: %4.2f kg\n",Arad(1),Arad(2),sum(mTsys));
