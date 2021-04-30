@@ -153,7 +153,7 @@ SCmI(8)=SCmI(1)+mTsys(2)+SolarArray(2)+ADCS(3); %total spacecraft mass
 SCmI(9)=SCmI(8)*(propP(1)-1)*(1-propP(2))/(1-propP(1)*propP(2)); %orbiter propellant mass
 SCmI(10)=propP(2)/(1-propP(2))*SCmI(9); %orbiter inert mass
 SCmI(11)=sum(SCmI(9:10)); %orbiter total mass
-fprintf("Propulsion System Parameters\n\t Payload mass: %6.2f kg\n\t Propellant mass: %6.2f kg \n\t Inert mass: %5.2f kg\n\t Total spacecraft mass: %6.2f kg\n",SCmI(8),SCmI(9),SCmI(10),SCmI(11));
+fprintf("Propulsion System Parameters\n\t Payload mass: %6.2f kg\n\t Propellant mass: %6.2f kg \n\t Structural mass: %5.2f kg\n\t Inert mass: %5.2f kg\n\t Total spacecraft mass: %6.2f kg\n",SCmI(8),SCmI(9),SCmI(10)-SCmI(8),SCmI(10),SCmI(11));
 
 %% Launch craft sizing
 % Once mass is determined, investigate commercial launch options. If our
