@@ -115,11 +115,11 @@ ae=[0.30,0.03,0.8,0.78,0.17,0.92]; %surface radiation factors [SCgold abs,SCgold
 %using vapor deposited gold SC coating and 5mil alumized teflon radiators with some of the spacecraft painted white with Z93 paint
 cfrac=0.216; %fraction of spacecraft surface that is painted white instead of gold coated
 
-Qsolalb=(1+albM)*GsM*((ae(5)*cfrac+ae(1)*(1-cfrac))*SCdim(2)+ae(3)*SolarArray(1)); %total solar Qin including albedo and solar panels [max,min] in W
+Qsolalb=(1+albM)*GsM*((ae(5)*cfrac+ae(1)*(1-cfrac))*SCdim(2)+ae(3)*SolarArray(1)); %total solar Qin including albedo and solar panels in W
 Qir=qMir*(SCdim(2)+SolarArray(1)); %planet IR Qin [max,min] in W
 Arad=[(Qsolalb+max(Qir)+max(Qwaste)-SCdim(3)*(ae(6)*cfrac+ae(2)*(1-cfrac))*sfb*max(Tlim)^4)/(ae(4)*sfb*max(Tlim)^4),(min(Qir)+min(Qwaste)-SCdim(3)*(ae(6)*cfrac+ae(2)*(1-cfrac))*sfb*min(Tlim)^4)/(ae(4)*sfb*min(Tlim)^4)]; %deployed radiator sizing for hot and cold cases
 mTsys=[(0.24*cfrac+19.3e3*100e-9*(1-cfrac))*SCdim(3),max(Arad)*2.707]; %thermal system masses [mass of paint and gold coating kg,mass of radiators kg]
-fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Retracted radiator area: %4.2f m^2\n\t Thermal system mass: %4.2f kg\n",Arad(1),Arad(2),sum(mTsys));
+fprintf("Thermal System Parameters\n\t Deployed radiator area: %4.2f m^2\n\t Thermal system mass: %4.2f kg\n",Arad(1),sum(mTsys));
 
 %% ADCS Sizing
 % Determine overall mass for craft based on all other components, add 60kg for CDS. Figure
