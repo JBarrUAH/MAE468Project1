@@ -60,9 +60,9 @@ fprintf("Spacecraft at Mars RoI Arrival\n\t Heliocentric Velocity: %5.4f, %5.4f,
 % launch and 400km circular Mars parking orbit
 fprintf("\n---TASK d---\n");
 alt=400; %spacecraft parking orbit altitude in km
-vinf1=vCAtoM(norm(vxyz1-vxyzE1)); %finding vinf at Earth in km/s
-vinf2=vCAtoM(norm(vxyz2-vxyzM2)); %finding vinf at Mars in km/s
-dvM=sqrt(muM/(3389.5+alt))-sqrt(2*(vinf2^2/2+muM/(3389.5+alt)));%finding dv for Mars 400km altitude parking orbit
+vinf(1)=vCAtoM(norm(vxyz1-vxyzE1)); %finding vinf at Earth in km/s
+vinf(2)=vCAtoM(norm(vxyz2-vxyzM2)); %finding vinf at Mars in km/s
+dvM=sqrt(muM/(3389.5+alt))-sqrt(2*(vinf(2)^2/2+muM/(3389.5+alt)));%finding dv for Mars 400km altitude parking orbit
 fprintf("Mars vinf to parking orbit dv: %5.4f km/s\n",abs(dvM)); %displaying delta v to get Mars parking orbit
 
 %% Transmitter sizing
@@ -159,7 +159,7 @@ fprintf("Propulsion System Parameters\n\t Payload mass: %6.2f kg\n\t Propellant 
 % Once mass is determined, investigate commercial launch options. If our
 % craft is too heavy, figure out the fuel and mass for a two or three stage
 % to orbit rocket.
-fprintf("Launch Craft Selection\n\t Based on spacecraft mass and desired transfer orbit, a Falcon Heavy will\n\t be used to obtain the required Earth hyperbolic Vinf of %5.3f km/s\n",vinf1);
+fprintf("Launch Craft Selection\n\t Based on spacecraft mass and desired transfer orbit, a Falcon Heavy will\n\t be used to obtain the required Earth hyperbolic Vinf of %5.3f km/s\n",vinf(1));
 
 %% Price of mission
 % Determine price of mission based on generic rates or specific
